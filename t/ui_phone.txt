@@ -1,0 +1,90 @@
+PASS mở chọn phái 
+PASS chọn Cung Thủ 
+PASS thẻ truyện chương 1 
+PASS vào trận 
+PASS tên hiện trên HUD 
+PASS di chuyển 626,2490 -> 837.3947984741206,2490
+PASS giữ nút Đánh hạ quái kills 0->2
+PASS kỹ năng 1 tốn nội lực 
+PASS kỹ năng khóa báo cấp mở 
+PASS uống Bình Kim Sang 
+PASS uống Bình Nội Lực 
+PASS bật tự đánh 
+PASS tắt tự đánh 
+PASS thẻ Trang bị tốt hơn xuất hiện 
+PASS trang bị từ thẻ gợi ý 
+PASS mở Túi đồ 
+PASS hiện ô đồ trong túi 13
+PASS chọn món đồ hiện chi tiết 
+PASS Trang bị trong túi 
+PASS Tháo đồ 
+PASS Sắp xếp không lỗi 
+PASS Phân giải 1 món 
+PASS Phân giải đồ yếu 
+PASS nút Rèn chuyển sang Lò rèn 
+PASS Cường hóa chạy và đổi cấp 0->1
+PASS bật Bùa Bảo Hộ 
+PASS Mua Huyền Thiết mở Chợ 
+PASS mua 5 Bình Kim Sang 
+PASS mua Bùa Bảo Hộ 
+PASS nâng kỹ năng 
+PASS đổi Dã Tẩu Nhặt 200 vàng -> Nhặt 2 trang bị Tinh Xảo trở lên
+PASS về trại 
+PASS nút NPC hiện khi đứng gần Thợ Rèn Thợ Rèn: Rèn đồ
+PASS NPC mở Lò rèn 
+PASS đóng bảng 
+PASS nút menu Túi đồ 
+PASS nút menu Lò rèn 
+PASS nút menu Chợ phiên 
+PASS nút menu Kỹ năng 
+PASS nút menu Thú cưỡi 
+PASS nút menu Cài đặt 
+PASS chạm khung nhiệm vụ mở Nhiệm vụ 
+PASS chạm bản đồ nhỏ mở Bản đồ 
+PASS bật/tắt music 
+PASS bật/tắt sfx 
+PASS bật/tắt autoPot 
+PASS bật/tắt autoSalvage 
+PASS mua Ngựa Nâu và cưỡi 
+PASS xuống ngựa 
+PASS cưỡi tăng tốc chạy 
+PASS mua Voi Chiến 
+PASS huấn luyện thú 
+PASS nút Cưỡi bật tắt 
+PASS chiêu thú cưỡi Voi Giẫm 
+PASS quái triều kéo tới 
+PASS thắng quái triều rơi rương 
+Traceback (most recent call last):
+  File "/home/claude/dvhk/t/ui_test.py", line 159, in <module>
+    ev("const d=G.drops.find(d=>d.kind==='chest');d.t=1;G.p.x=d.x;G.p.y=d.y");pg.wait_for_timeout(600);ok('mở rương báu',ev("!G.drops.some(d=>d.kind==='chest')"))
+    ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/playwright/sync_api/_generated.py", line 8531, in evaluate
+    self._sync(
+    ~~~~~~~~~~^
+        self._impl_obj.evaluate(expression=expression, arg=mapping.to_impl(arg))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/dist-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/dist-packages/playwright/_impl/_page.py", line 467, in evaluate
+    return await self._main_frame.evaluate(expression, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/playwright/_impl/_frame.py", line 320, in evaluate
+    await self._channel.send(
+    ...<6 lines>...
+    )
+  File "/usr/local/lib/python3.13/dist-packages/playwright/_impl/_connection.py", line 69, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/usr/local/lib/python3.13/dist-packages/playwright/_impl/_connection.py", line 559, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.Error: Page.evaluate: TypeError: Cannot set properties of undefined (setting 't')
+    at eval (eval at evaluate (:290:30), <anonymous>:1:46)
+    at eval (<anonymous>)
+    at UtilityScript.evaluate (<anonymous>:290:30)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)

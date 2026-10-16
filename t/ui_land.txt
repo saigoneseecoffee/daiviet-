@@ -1,0 +1,60 @@
+PASS mở chọn phái 
+PASS chọn Cung Thủ 
+PASS thẻ truyện chương 1 
+PASS vào trận 
+PASS tên hiện trên HUD 
+PASS di chuyển 626,2490 -> 818.192202290344,2490
+PASS giữ nút Đánh hạ quái kills 0->2
+PASS kỹ năng 1 tốn nội lực 
+PASS kỹ năng khóa báo cấp mở 
+PASS uống Bình Kim Sang 
+PASS uống Bình Nội Lực 
+PASS bật tự đánh 
+PASS tắt tự đánh 
+PASS thẻ Trang bị tốt hơn xuất hiện 
+PASS trang bị từ thẻ gợi ý 
+PASS mở Túi đồ 
+PASS hiện ô đồ trong túi 13
+PASS chọn món đồ hiện chi tiết 
+PASS Trang bị trong túi 
+PASS Tháo đồ 
+PASS Sắp xếp không lỗi 
+PASS Phân giải 1 món 
+PASS Phân giải đồ yếu 
+PASS nút Rèn chuyển sang Lò rèn 
+PASS Cường hóa chạy và đổi cấp 0->1
+PASS bật Bùa Bảo Hộ 
+PASS Mua Huyền Thiết mở Chợ 
+PASS mua 5 Bình Kim Sang 
+PASS mua Bùa Bảo Hộ 
+PASS nâng kỹ năng 
+PASS đổi Dã Tẩu Hạ 2 quái tinh anh -> Cường hóa trang bị 1 lần
+PASS về trại 
+PASS nút NPC hiện khi đứng gần Thợ Rèn Thợ Rèn: Rèn đồ
+PASS NPC mở Lò rèn 
+PASS đóng bảng 
+PASS nút menu Túi đồ 
+PASS nút menu Lò rèn 
+PASS nút menu Chợ phiên 
+PASS nút menu Kỹ năng 
+PASS nút menu Nhiệm vụ 
+PASS nút menu Cài đặt 
+PASS chạm khung nhiệm vụ mở Nhiệm vụ 
+PASS chạm bản đồ nhỏ mở Bản đồ 
+PASS bật/tắt music 
+PASS bật/tắt sfx 
+PASS bật/tắt autoPot 
+PASS bật/tắt autoSalvage 
+PASS màn Trọng thương 
+PASS hồi sinh ở trại 
+PASS boss xuất hiện khi vào đấu trường Ngư Tinh
+PASS màn qua chương 
+PASS sang chương 2 Cổ Loa 
+PASS về màn hình chính có Chơi tiếp 
+PASS Chơi tiếp vào lại game 
+PASS đã lưu localStorage 
+PASS hộp xác nhận xóa 
+PASS xóa xong về tiêu đề 
+PASS không tràn ngang 
+ERRORS []
+SUMMARY 58 / 58

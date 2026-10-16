@@ -1,0 +1,208 @@
+/* ============ DỮ LIỆU GAME ============ */
+const RARITY=[
+  {name:'Thường',color:'#d8d0bf',mult:1.00,aff:0},
+  {name:'Tinh Xảo',color:'#62b4ff',mult:1.15,aff:1},
+  {name:'Hiếm',color:'#c58bff',mult:1.32,aff:2},
+  {name:'Truyền Thuyết',color:'#ffc53d',mult:1.55,aff:3},
+  {name:'Thần Khí',color:'#ff5b3d',mult:1.85,aff:4},
+];
+const SLOTS=['vk','mu','ao','dai','giay','boi'];
+const SLOT_NAME={vk:'Vũ khí',mu:'Mũ',ao:'Áo giáp',dai:'Đai lưng',giay:'Giày',boi:'Ngọc bội'};
+const TIER_NAMES={
+  kiem:['Đoản Kiếm Đông Sơn','Kiếm Sắt Cổ Loa','Kiếm Thép Bạch Đằng','Kiếm Sát Thát','Thuận Thiên Kiếm','Long Tuyền Kiếm'],
+  cung:['Cung Tre','Nỏ Liên Châu','Cung Sừng Tê','Cung Sát Thát','Cung Lam Sơn','Thần Nỏ Kim Quy'],
+  giao:['Giáo Đồng','Mâu Sắt','Thương Bạch Đằng','Thương Đông A','Thương Lam Sơn','Long Đảm Thương'],
+  dao:['Song Đao Đồng','Song Đao Sắt','Song Đao Thép','Song Đao Đông A','Song Đao Tây Sơn','Huyết Long Song Đao'],
+  con:['Côn Tre','Côn Gỗ Lim','Côn Bịt Sắt','Côn Đông A','Côn Bình Định','Kim Cang Côn'],
+  phap:['Bùa Giấy','Quạt Bùa','Phù Ấn Đồng','Phù Ấn Ngọc','Ấn Từ Đạo Hạnh','Thiên Lôi Ấn'],
+  mu:['Khăn Vấn','Nón Lá Sắt','Mũ Trụ Đồng','Mũ Trụ Sắt','Mũ Đâu Mâu','Mũ Kim Long'],
+  ao:['Áo Vải Nâu','Áo Da Tê','Giáp Đồng','Giáp Lá Sắt','Giáp Vảy Cá','Giáp Long Lân'],
+  dai:['Dây Lưng Gai','Đai Da Trâu','Đai Đồng','Đai Bạc','Đai Ngọc','Đai Kim Long'],
+  giay:['Dép Cỏ','Giày Vải','Hài Da','Ủng Sắt','Ủng Phi Vân','Hài Lướt Gió'],
+  boi:['Vòng Đá','Ngọc Bích','Ngọc Trai','Ngọc Hổ Phách','Ngọc Tỷ','Dạ Minh Châu'],
+};
+/* Thuộc tính phụ. roll(L) trả về giá trị theo cấp đồ */
+const AFFIX={
+  atkp:{name:'Công lực',u:'%',roll:L=>3+L*0.35},
+  hpp:{name:'Sinh lực',u:'%',roll:L=>4+L*0.4},
+  def:{name:'Phòng thủ',u:'',roll:L=>2+L*0.9},
+  crit:{name:'Chí mạng',u:'%',roll:L=>1.5+L*0.1},
+  cdmg:{name:'ST chí mạng',u:'%',roll:L=>8+L*0.5},
+  aspd:{name:'Tốc đánh',u:'%',roll:L=>4+L*0.15},
+  spd:{name:'Tốc chạy',u:'%',roll:L=>3+L*0.1},
+  ls:{name:'Hút máu',u:'%',roll:L=>1+L*0.06},
+  mp:{name:'Nội lực',u:'',roll:L=>8+L*2},
+  exp:{name:'Kinh nghiệm',u:'%',roll:L=>5+L*0.25},
+  gold:{name:'Vàng rơi',u:'%',roll:L=>8+L*0.4},
+};
+const AFFIX_CAP={atkp:30,hpp:35,crit:9,cdmg:45,aspd:22,spd:15,ls:5,exp:25,gold:40};
+const STAT_NAME={atk:'Công',def:'Thủ',hp:'Sinh lực',mp:'Nội lực',crit:'Chí mạng',spd:'Tốc chạy'};
+
+/* ---------------- 6 PHÁI ---------------- */
+const CLASSES=[
+ {id:'kiem',name:'Kiếm Khách',phai:'Thuận Thiên Kiếm',color:'#4fd1c5',dark:'#1d5f5a',
+  line:'Cân bằng công thủ. Chém vòng cung, phóng kiếm khí.',
+  ratings:[4,3,3,2],
+  base:{hp:[120,18],mp:[40,4],atk:[14,3.0],def:[6,1.5],crit:8,cdmg:160,spd:150},
+  atk:{type:'arc',range:66,arc:2.2,interval:0.46},
+  skills:[
+   {id:'wave',name:'Kiếm Khí',mp:8,cd:2.4,un:1,mult:1.7,d:'Phóng một vệt kiếm khí xuyên thấu theo đường thẳng.'},
+   {id:'spin',name:'Lốc Kiếm',mp:14,cd:6,un:3,mult:0.9,d:'Xoay kiếm ba vòng, chém mọi kẻ địch xung quanh.'},
+   {id:'swordrain',name:'Vạn Kiếm Quy Tông',mp:30,cd:15,un:6,mult:1.5,d:'Mười hai thanh kiếm từ trời giáng xuống kẻ địch gần đó.'}]},
+ {id:'cung',name:'Cung Thủ',phai:'Lạc Việt Thần Tiễn',color:'#8fd16a',dark:'#2f5a22',
+  line:'Bắn xa, thả diều. Mưa tên quét sạch cả bầy.',
+  ratings:[4,2,3,5],
+  base:{hp:[95,14],mp:[50,5],atk:[13,2.8],def:[4,1.1],crit:10,cdmg:165,spd:156},
+  atk:{type:'shot',range:300,interval:0.5,proj:'arrow',speed:620},
+  skills:[
+   {id:'tri',name:'Tam Liên Tiễn',mp:8,cd:2.2,un:1,mult:1.25,d:'Bắn ba mũi tên xuyên thấu tỏa hình quạt.'},
+   {id:'leap',name:'Phi Thân Tiễn',mp:12,cd:5,un:3,mult:1.0,d:'Nhảy lùi tránh đòn rồi bắn năm mũi tên.'},
+   {id:'arrowrain',name:'Mưa Tên',mp:28,cd:14,un:6,mult:0.65,d:'Mưa tên trút xuống một vùng trong hai giây.'}]},
+ {id:'giao',name:'Thương Tướng',phai:'Bạch Đằng Thương',color:'#ff6f5e',dark:'#6a2219',
+  line:'Tầm với dài, quét ngang hất văng. Cọc nhọn trói chân giặc.',
+  ratings:[4,4,2,3],
+  base:{hp:[130,20],mp:[40,4],atk:[15,3.2],def:[7,1.6],crit:6,cdmg:160,spd:146},
+  atk:{type:'thrust',range:104,arc:0.9,interval:0.58},
+  skills:[
+   {id:'lunge',name:'Đột Thương',mp:10,cd:3.4,un:1,mult:1.8,d:'Lao thẳng tới trước, đâm xuyên mọi kẻ cản đường.'},
+   {id:'sweep',name:'Hoành Tảo',mp:14,cd:6,un:3,mult:1.5,d:'Quét thương nửa vòng tròn, hất văng kẻ địch.'},
+   {id:'stakes',name:'Cọc Bạch Đằng',mp:30,cd:15,un:6,mult:1.6,d:'Ba vòng cọc nhọn trồi lên, gây sát thương và choáng.'}]},
+ {id:'dao',name:'Song Đao',phai:'Tây Sơn Song Đao',color:'#c58bff',dark:'#4a2470',
+  line:'Nhanh như gió, chí mạng cao. Lướt xuyên qua quân địch.',
+  ratings:[5,2,5,1],
+  base:{hp:[100,15],mp:[40,4],atk:[11,2.6],def:[5,1.2],crit:20,cdmg:180,spd:162},
+  atk:{type:'arc',range:56,arc:2.4,interval:0.3},
+  skills:[
+   {id:'shadow',name:'Ảnh Bộ',mp:8,cd:2.8,un:1,mult:1.5,d:'Lướt xuyên qua kẻ địch, không bị trúng đòn khi lướt.'},
+   {id:'flurry',name:'Loạn Đao',mp:12,cd:5,un:3,mult:0.6,d:'Sáu nhát chém liên hoàn về phía trước.'},
+   {id:'blink',name:'Huyết Ảnh Sát',mp:28,cd:14,un:6,mult:2.0,d:'Thoắt ẩn thoắt hiện, chém tám kẻ địch gần nhất.'}]},
+ {id:'con',name:'Côn Sư',phai:'Bình Định Côn',color:'#ffb347',dark:'#6b4012',
+  line:'Trâu bò nhất. Đập đất làm choáng, thân Kim Cang phản đòn.',
+  ratings:[3,5,2,2],
+  base:{hp:[170,26],mp:[35,3],atk:[12,2.7],def:[10,2.2],crit:5,cdmg:155,spd:144},
+  atk:{type:'arc',range:76,arc:3.4,interval:0.62},
+  skills:[
+   {id:'slam',name:'Chấn Địa',mp:10,cd:4,un:1,mult:1.6,d:'Nện côn xuống đất, làm choáng kẻ địch xung quanh.'},
+   {id:'guard',name:'Kim Cang Thân',mp:15,cd:12,un:3,mult:0,d:'Năm giây giảm nửa sát thương nhận vào, phản lại 40%, kéo địch lại gần.'},
+   {id:'wheel',name:'Phong Hỏa Luân',mp:30,cd:15,un:6,mult:0.55,d:'Côn xoay thành vòng lửa trong bốn giây, chạy nhanh hơn.'}]},
+ {id:'phap',name:'Pháp Sư',phai:'Huyền Phù Đạo',color:'#7fb2ff',dark:'#24366e',
+  line:'Phép thuật diện rộng. Sét lan, lửa thiêu, máu mỏng.',
+  ratings:[5,1,3,4],
+  base:{hp:[90,13],mp:[80,8],atk:[15,3.3],def:[3,1.0],crit:8,cdmg:165,spd:150},
+  atk:{type:'shot',range:270,interval:0.56,proj:'orb',speed:430},
+  skills:[
+   {id:'chain',name:'Lôi Phù',mp:9,cd:2.2,un:1,mult:1.4,d:'Tia sét nhảy qua tối đa năm kẻ địch.'},
+   {id:'firering',name:'Hỏa Long Trận',mp:16,cd:6,un:3,mult:0.4,d:'Vòng lửa thiêu đốt một vùng trong ba giây.'},
+   {id:'thunder',name:'Thiên Lôi Giáng',mp:32,cd:14,un:6,mult:2.3,d:'Tám tia sét giáng xuống kẻ địch xung quanh.'}]},
+];
+const CLASS_BY_ID={};CLASSES.forEach(c=>CLASS_BY_ID[c.id]=c);
+
+/* ---------------- QUÁI ---------------- */
+/* body: kiểu vẽ. ai: melee|charge|ranged|bomber|boss. hp/atk: hệ số */
+const FACTION={
+  phi:{a:'#6d5539',b:'#3d2d1e',h:'scarf',hc:'#8b2e22'},
+  trieu:{a:'#5e6b3a',b:'#2f3620',h:'cap',hc:'#a0332a'},
+  han:{a:'#7a2f2a',b:'#2a1714',h:'helm',hc:'#1c1c1c'},
+  nguyen:{a:'#8a6a45',b:'#3e2d1c',h:'fur',hc:'#5a3d22'},
+  minh:{a:'#a3392d',b:'#3b1d18',h:'helm',hc:'#2b2b33'},
+  thanh:{a:'#3f5a7a',b:'#1f2c3d',h:'qing',hc:'#b12a2a'},
+};
+const ET={
+ soi:{name:'Sói Rừng',body:'wolf',ai:'melee',hp:0.9,atk:0.9,spd:122,r:16,c:['#7f7b74','#45423d','#ddd6c8'],range:34,wind:0.38,cd:1.1},
+ lon:{name:'Lợn Lòi',body:'boar',ai:'charge',hp:1.35,atk:1.1,spd:86,r:18,c:['#6b4a36','#3b281d','#efe2c6'],range:210,wind:0.65,cd:3},
+ ran:{name:'Rắn Hổ Mang',body:'snake',ai:'melee',hp:0.6,atk:1.0,spd:96,r:13,c:['#5a7a2f','#2d3e1a','#e0cc4f'],range:32,wind:0.3,cd:0.9},
+ khi:{name:'Khỉ Đá',body:'monkey',ai:'ranged',hp:0.75,atk:0.85,spd:112,r:14,c:['#9a6a3e','#5a3b1f','#f0cfa2'],range:230,wind:0.55,cd:2.1,proj:'rock'},
+ thophi:{name:'Thổ Phỉ',body:'human',fac:'phi',wp:'sword',ai:'melee',hp:1.0,atk:1.05,spd:104,r:15,range:40,wind:0.42,cd:1.2},
+ ho:{name:'Hổ Vằn',body:'tiger',ai:'charge',hp:1.7,atk:1.35,spd:112,r:21,c:['#d98a2b','#2b1a10','#f6e8cf'],range:230,wind:0.6,cd:2.8},
+ linhtrieu:{name:'Lính Triệu',body:'human',fac:'trieu',wp:'spear',ai:'melee',hp:1.15,atk:1.05,spd:98,r:15,range:58,wind:0.5,cd:1.4},
+ cungtrieu:{name:'Cung Thủ Triệu',body:'human',fac:'trieu',wp:'bow',ai:'ranged',hp:0.8,atk:0.95,spd:100,r:15,range:260,wind:0.6,cd:2.2,proj:'arrow'},
+ linhhan:{name:'Lính Nam Hán',body:'human',fac:'han',wp:'shield',ai:'melee',hp:1.4,atk:1.05,spd:96,r:16,range:42,wind:0.45,cd:1.3},
+ cunghan:{name:'Cung Thủ Nam Hán',body:'human',fac:'han',wp:'bow',ai:'ranged',hp:0.85,atk:1.0,spd:100,r:15,range:270,wind:0.6,cd:2.1,proj:'arrow'},
+ casau:{name:'Cá Sấu',body:'croc',ai:'melee',hp:2.1,atk:1.25,spd:70,r:22,c:['#4d6b3a','#24331b','#c9d39a'],range:44,wind:0.55,cd:1.6},
+ thuybinh:{name:'Thủy Binh Nam Hán',body:'human',fac:'han',wp:'spear',ai:'melee',hp:1.1,atk:1.1,spd:104,r:15,range:58,wind:0.48,cd:1.3},
+ kybinh:{name:'Kỵ Binh Nguyên',body:'cav',fac:'nguyen',wp:'sword',ai:'charge',hp:1.6,atk:1.3,spd:118,r:22,c:['#5a4030','#2f2219','#e8dcc6'],range:260,wind:0.6,cd:2.6},
+ cungky:{name:'Cung Kỵ Nguyên',body:'cav',fac:'nguyen',wp:'bow',ai:'ranged',hp:1.2,atk:1.0,spd:120,r:22,c:['#8a7058','#463626','#f2e6d2'],range:290,wind:0.55,cd:1.9,proj:'arrow'},
+ linhnguyen:{name:'Lính Nguyên',body:'human',fac:'nguyen',wp:'sword',ai:'melee',hp:1.2,atk:1.15,spd:108,r:15,range:40,wind:0.4,cd:1.15},
+ soithao:{name:'Sói Thảo Nguyên',body:'wolf',ai:'melee',hp:1.0,atk:1.0,spd:130,r:16,c:['#a39a86','#5c5548','#efe9dc'],range:34,wind:0.35,cd:1.0},
+ linhminh:{name:'Lính Minh',body:'human',fac:'minh',wp:'spear',ai:'melee',hp:1.25,atk:1.1,spd:100,r:15,range:58,wind:0.46,cd:1.3},
+ cungminh:{name:'Nỏ Thủ Minh',body:'human',fac:'minh',wp:'bow',ai:'ranged',hp:0.9,atk:1.05,spd:100,r:15,range:280,wind:0.55,cd:2.0,proj:'arrow'},
+ phaominh:{name:'Hỏa Pháo Minh',body:'human',fac:'minh',wp:'bomb',ai:'bomber',hp:1.0,atk:1.5,spd:90,r:15,range:300,wind:0.6,cd:2.8},
+ baoden:{name:'Báo Đen',body:'tiger',ai:'charge',hp:1.5,atk:1.4,spd:126,r:19,c:['#2c2a30','#111015','#7c7684'],range:240,wind:0.5,cd:2.4,nostripe:1},
+ linhthanh:{name:'Lính Thanh',body:'human',fac:'thanh',wp:'sword',ai:'melee',hp:1.25,atk:1.15,spd:106,r:15,range:40,wind:0.4,cd:1.1},
+ cungthanh:{name:'Cung Thủ Thanh',body:'human',fac:'thanh',wp:'bow',ai:'ranged',hp:0.95,atk:1.05,spd:102,r:15,range:280,wind:0.55,cd:1.9,proj:'arrow'},
+ kythanh:{name:'Kỵ Binh Thanh',body:'cav',fac:'thanh',wp:'spear',ai:'charge',hp:1.7,atk:1.35,spd:120,r:22,c:['#4a4a52','#22222a','#e0e0e8'],range:270,wind:0.55,cd:2.4},
+ hoathanh:{name:'Hỏa Khí Thanh',body:'human',fac:'thanh',wp:'bomb',ai:'bomber',hp:1.05,atk:1.55,spd:92,r:15,range:310,wind:0.55,cd:2.6},
+ /* BOSS */
+ ngutinh:{name:'Ngư Tinh',title:'Yêu cá biển Đông',body:'fish',ai:'boss',hp:16,atk:1.45,spd:72,r:44,c:['#3f8f8a','#1b4a4d','#ffd36b'],pat:['slam','volley','charge','summon','meteor'],minion:'ran',proj:'water'},
+ bachke:{name:'Bạch Kê Tinh',title:'Yêu gà trắng phá thành',body:'rooster',ai:'boss',hp:20,atk:1.55,spd:90,r:40,c:['#f3efe6','#b8ab95','#d4322a'],pat:['charge','volley','meteor','summon','slam'],minion:'thophi',proj:'feather'},
+ hoangthao:{name:'Hoằng Tháo',title:'Thái tử Nam Hán',body:'general',fac:'han',wp:'spear',ai:'boss',hp:24,atk:1.6,spd:92,r:30,pat:['slam','charge','volley','summon','meteor'],minion:'thuybinh',proj:'arrow'},
+ toado:{name:'Toa Đô',title:'Tướng Nguyên Mông',body:'general',mount:1,fac:'nguyen',wp:'sword',ai:'boss',hp:26,atk:1.6,spd:110,r:34,pat:['charge','volley','meteor','summon','slam'],minion:'linhnguyen',proj:'arrow'},
+ lieuthang:{name:'Liễu Thăng',title:'Tổng binh nhà Minh',body:'general',fac:'minh',wp:'spear',ai:'boss',hp:28,atk:1.62,spd:96,r:30,pat:['meteor','slam','charge','volley','summon'],minion:'phaominh',proj:'fire'},
+ samnghidong:{name:'Sầm Nghi Đống',title:'Thái thú Điền Châu',body:'general',fac:'thanh',wp:'sword',ai:'boss',hp:32,atk:1.68,spd:100,r:30,pat:['slam','meteor','charge','volley','summon'],minion:'linhthanh',proj:'fire'},
+};
+
+/* ---------------- 6 CHƯƠNG ---------------- */
+const MAPS=[
+ {name:'Phong Châu',era:'Văn Lang, thời Hùng Vương',lv:[1,7],seed:11,
+  pal:{g:['#5f8a3e','#6b9746','#567f37'],path:'#b99a62',water:'#2c6a74',water2:'#4a97a0',shore:'#c7b07a',tree:'#3c6b2c',tree2:'#2a4f20',trunk:'#5b4026',accent:'#e8c35a',tint:'rgba(255,240,200,0.05)'},
+  feat:'river',deco:['bamboo','banyan','fern','flower'],amb:'firefly',
+  enemies:[['soi',5],['ran',3],['lon',2],['khi',2]],
+  quest:[{t:'kill',e:'soi',n:8,txt:'Diệt Sói Rừng quanh làng'},{t:'collect',e:'lon',n:4,item:'Nanh Lợn Lòi',txt:'Thu Nanh Lợn Lòi'},{t:'elite',n:2,txt:'Hạ thú tinh anh'},{t:'boss',txt:'Trừ Ngư Tinh ở đầm lầy'}],
+  boss:'ngutinh',
+  story:'Kinh đô Văn Lang của các vua Hùng. Truyền thuyết kể Ngư Tinh, con cá thành tinh ở biển Đông, từng gây họa cho dân Lạc Việt cho đến khi Lạc Long Quân ra tay trừ diệt. Nay yêu khí lại nổi lên quanh Phong Châu. Luyện võ, trừ thú dữ, rồi tìm ra Ngư Tinh.'},
+ {name:'Cổ Loa',era:'Âu Lạc, thời An Dương Vương',lv:[7,13],seed:23,
+  pal:{g:['#8a8a4a','#97955a','#7b7c40'],path:'#c4a36a',water:'#3b6670',water2:'#5d8f96',shore:'#c9ae78',tree:'#4d6a2e',tree2:'#334a1f',trunk:'#5e4128',accent:'#f0c868',tint:'rgba(255,220,150,0.06)',wall:'#a07c52',wall2:'#7d5d3b'},
+  feat:'spiral',deco:['banyan','palm','rock','flower'],amb:'dust',
+  enemies:[['thophi',4],['linhtrieu',3],['cungtrieu',2],['ho',2]],
+  quest:[{t:'kill',e:'thophi',n:10,txt:'Dẹp Thổ Phỉ ngoài lũy'},{t:'collect',e:'linhtrieu',n:5,item:'Lệnh Bài Triệu',txt:'Đoạt Lệnh Bài Triệu'},{t:'elite',n:2,txt:'Hạ tinh anh giữ thành'},{t:'boss',txt:'Diệt Bạch Kê Tinh'}],
+  boss:'bachke',
+  story:'An Dương Vương dời đô về Cổ Loa, đắp thành hình xoắn ốc. Tương truyền thành đắp đến đâu đổ đến đó vì Bạch Kê Tinh quấy phá, phải nhờ thần Kim Quy mới xây xong. Thổ phỉ và lính Triệu Đà đang rình rập ngoài lũy.'},
+ {name:'Bạch Đằng',era:'Năm 938, Ngô Quyền',lv:[13,19],seed:37,
+  pal:{g:['#5c7a52','#678a5c','#516d48'],path:'#a99572',water:'#24525e',water2:'#3d7883',shore:'#9e9470',tree:'#2f5a3a',tree2:'#1f3f28',trunk:'#4a3626',accent:'#9fd8d0',tint:'rgba(150,200,220,0.07)'},
+  feat:'bigriver',deco:['mangrove','reed','rock','stake'],amb:'rain',
+  enemies:[['linhhan',4],['cunghan',3],['thuybinh',3],['casau',2]],
+  quest:[{t:'kill',e:'thuybinh',n:10,txt:'Chặn Thủy Binh đổ bộ'},{t:'collect',e:'linhhan',n:5,item:'Cờ Hiệu Nam Hán',txt:'Đoạt Cờ Hiệu Nam Hán'},{t:'elite',n:3,txt:'Hạ tinh anh Nam Hán'},{t:'boss',txt:'Đánh bại Hoằng Tháo'}],
+  boss:'hoangthao',
+  story:'Năm 938, Ngô Quyền cho đóng cọc gỗ đầu bịt sắt dưới lòng sông Bạch Đằng, nhử thuyền Nam Hán vào lúc nước triều lên. Khi triều rút, thuyền giặc mắc cọc và vỡ tan. Hoằng Tháo, con vua Nam Hán, tử trận. Hãy cùng nghĩa quân giữ bãi cọc.'},
+ {name:'Tây Kết',era:'Năm 1285, nhà Trần',lv:[19,25],seed:41,
+  pal:{g:['#9a9248','#a69d52','#8b843f'],path:'#c2a46c',water:'#3a6474',water2:'#5a8c98',shore:'#c4ad78',tree:'#5a7a30',tree2:'#3c5520',trunk:'#5b4026',accent:'#ffd76a',tint:'rgba(255,200,120,0.08)',field:'#b9ad4c',field2:'#d6c862'},
+  feat:'fields',deco:['hut','palm','haystack','rock'],amb:'dust',
+  enemies:[['linhnguyen',4],['kybinh',3],['cungky',2],['soithao',3]],
+  quest:[{t:'kill',e:'kybinh',n:8,txt:'Chặn Kỵ Binh Nguyên'},{t:'collect',e:'cungky',n:5,item:'Tên Lông Ưng',txt:'Thu Tên Lông Ưng'},{t:'elite',n:3,txt:'Hạ tinh anh thảo nguyên'},{t:'boss',txt:'Đánh bại Toa Đô'}],
+  boss:'toado',
+  story:'Năm 1285, quân Trần phản công quân Nguyên Mông. Ở trận Tây Kết, tướng giặc Toa Đô tử trận. Kỵ binh và cung kỵ thảo nguyên vẫn còn càn quét đồng lúa ven sông.'},
+ {name:'Chi Lăng',era:'Năm 1427, khởi nghĩa Lam Sơn',lv:[25,31],seed:53,
+  pal:{g:['#5d7462','#68806c','#536a58'],path:'#a39a86',water:'#2d5560',water2:'#4b7b84',shore:'#9a9682',tree:'#2e5040',tree2:'#1f382c',trunk:'#463428',accent:'#cfe3d5',tint:'rgba(200,220,230,0.09)',cliff:'#6f7472',cliff2:'#4b504f'},
+  feat:'pass',deco:['pine','rock','fern','karst'],amb:'mist',
+  enemies:[['linhminh',4],['cungminh',3],['phaominh',2],['baoden',2]],
+  quest:[{t:'kill',e:'linhminh',n:10,txt:'Phục kích Lính Minh'},{t:'collect',e:'phaominh',n:5,item:'Túi Thuốc Súng',txt:'Thu Túi Thuốc Súng'},{t:'elite',n:3,txt:'Hạ tinh anh nhà Minh'},{t:'boss',txt:'Chém Liễu Thăng ở Mã Yên'}],
+  boss:'lieuthang',
+  story:'Năm 1427, nghĩa quân Lam Sơn phục binh ở ải Chi Lăng hiểm trở. Tổng binh nhà Minh Liễu Thăng mắc mưu và bị chém ở núi Mã Yên. Hỏa pháo binh giặc vẫn còn giữ các ngả đèo.'},
+ {name:'Đống Đa',era:'Tết Kỷ Dậu 1789, Quang Trung',lv:[31,37],seed:67,
+  pal:{g:['#7e8a6a','#8a9676','#727e60'],path:'#b8a27e',water:'#3b5f70',water2:'#6a92a2',shore:'#bfb08e',tree:'#3e5a3a',tree2:'#2a4028',trunk:'#4d3528',accent:'#ff9fb8',tint:'rgba(255,210,225,0.07)'},
+  feat:'mounds',deco:['peach','lantern','rock','pine'],amb:'petal',
+  enemies:[['linhthanh',4],['cungthanh',3],['kythanh',2],['hoathanh',2]],
+  quest:[{t:'kill',e:'linhthanh',n:12,txt:'Thần tốc phá Lính Thanh'},{t:'collect',e:'kythanh',n:5,item:'Ấn Tín Quân Thanh',txt:'Thu Ấn Tín Quân Thanh'},{t:'elite',n:3,txt:'Hạ tinh anh quân Thanh'},{t:'boss',txt:'Đánh bại Sầm Nghi Đống'}],
+  boss:'samnghidong',
+  story:'Tết Kỷ Dậu 1789, vua Quang Trung thần tốc ra Bắc, đại phá quân Thanh. Ở Đống Đa, tướng giặc Sầm Nghi Đống thắt cổ tự vẫn. Hoa đào nở khắp Thăng Long đón đoàn quân thắng trận.'},
+];
+
+/* Nhiệm vụ Dã Tẩu: chuỗi nhiệm vụ lặp lại */
+const SIDE_Q=[
+  {t:'any',n:[12,20],txt:n=>`Diệt ${n} quái bất kỳ`},
+  {t:'elite',n:[1,2],txt:n=>`Hạ ${n} quái tinh anh`},
+  {t:'loot',n:[2,3],txt:n=>`Nhặt ${n} trang bị Tinh Xảo trở lên`},
+  {t:'forge',n:[1,2],txt:n=>`Cường hóa trang bị ${n} lần`},
+  {t:'gold',n:[1,1],txt:n=>`Nhặt ${n} vàng`},
+  {t:'skill',n:[8,14],txt:n=>`Dùng kỹ năng ${n} lần`},
+];
+const RANKS=[[1,'Tân Thủ'],[5,'Hiệp Sĩ'],[10,'Tráng Sĩ'],[15,'Đô Úy'],[20,'Tướng Quân'],[25,'Đại Tướng'],[30,'Anh Hùng'],[36,'Võ Thánh']];
+const FORGE_RATE=[100,100,100,92,84,76,68,60,52,45,38,31,25,19,14,10];
+const SHOP=[
+  {id:'potHP',name:'Bình Kim Sang',d:'Hồi 45% sinh lực ngay lập tức.',price:L=>20+L*6},
+  {id:'potMP',name:'Bình Nội Lực',d:'Hồi 60% nội lực ngay lập tức.',price:L=>15+L*4},
+  {id:'ore',name:'Huyền Thiết',d:'Nguyên liệu để cường hóa trang bị.',price:L=>40+L*8},
+  {id:'charm',name:'Bùa Bảo Hộ',d:'Giữ cấp cường hóa khi rèn thất bại.',price:L=>400+L*60},
+];
+const NAMES_A=['Lê','Trần','Nguyễn','Lý','Phạm','Đinh','Ngô','Hồ','Võ','Đặng'];
+const NAMES_B=['Bình','An','Khang','Vũ','Phong','Lâm','Hùng','Thịnh','Minh','Sơn','Lãng','Quân','Duy','Tâm'];
