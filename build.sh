@@ -14,4 +14,11 @@ echo '<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="vie
 cat dist/dai-viet-hiep-khach.html
 echo '</body></html>'
 } > dist/test.html
+# bản đứng riêng cho GitHub Pages / Cloudflare: có đủ khung trang
+{
+echo '<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><style>[hidden]{display:none!important}html,body{margin:0;background:#1d1410;color-scheme:dark}</style></head><body>'
+cat dist/dai-viet-hiep-khach.html
+echo '</body></html>'
+} > dist/index.html
+cp dist/index.html index.html
 wc -c dist/dai-viet-hiep-khach.html

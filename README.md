@@ -19,7 +19,7 @@ Game nhập vai hành động lấy bối cảnh lịch sử Việt Nam, chạy 
 
 ## Dựng lại
 ```bash
-bash build.sh && cp dist/dai-viet-hiep-khach.html index.html
+bash build.sh   # tạo dist/ và cập nhật index.html (bản đứng riêng có đủ khung trang)
 ```
 
 ## Kiểm thử
