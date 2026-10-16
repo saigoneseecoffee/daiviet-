@@ -28,6 +28,13 @@ const store={
   set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}},
   del(k){try{localStorage.removeItem(k)}catch(e){}}
 };
+/* ---- điểm nối cho mô-đun mở rộng (perks.js, legend.js, boss2.js) ----
+   HK.on(tên, hàm) để đăng ký. HK.ev chỉ báo sự kiện; HK.mod truyền giá trị qua từng hàm, hàm trả về giá trị mới (hoặc undefined để giữ nguyên).
+   Sự kiện: stats(st) · spawn(e) · hit(e,dmg,o) · kill(e) · lvl(level) · attack(target) · cast(i,sk) · tick(dt) · drawWorld(left,top,vw,vh) · drawScreen()
+   Biến đổi: dmgOut(dmg,e,o) · dmgIn(dmg,src) · item(it) */
+const HK={_h:{},on(n,f){(this._h[n]||(this._h[n]=[])).push(f)},
+  ev(n,a,b,c,d){const l=this._h[n];if(l)for(const f of l){try{f(a,b,c,d)}catch(err){console.error(err)}}},
+  mod(n,v,a,b,c){const l=this._h[n];if(l)for(const f of l){try{const r=f(v,a,b,c);if(r!==undefined)v=r}catch(err){console.error(err)}}return v}};
 function loadSave(){
   try{const hot=window.claude&&window.claude.hot&&window.claude.hot.data;if(hot&&hot.save)return hot.save}catch(e){}
   const raw=store.get(SAVE_KEY);if(!raw)return null;

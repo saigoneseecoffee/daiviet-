@@ -2,7 +2,7 @@ import os, re, json
 from playwright.sync_api import sync_playwright
 T = '/home/claude/dvhk/t'
 NM = T + '/node_modules'
-HTML = '/home/claude/dvhk/dist/test.html'
+HTML = os.environ.get('DVHK_HTML','/home/claude/dvhk/dist/test.html')
 
 def font_css():
     css = ''

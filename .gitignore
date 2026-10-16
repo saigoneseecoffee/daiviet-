@@ -5,3 +5,6 @@ before/
 dist/test.html
 dist/styles_test.html
 *.pyc
+t/logs_*/
+t/*.log
+dist/agent_*.html

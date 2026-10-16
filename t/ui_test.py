@@ -175,6 +175,7 @@ with sync_playwright() as p:
     for mi in range(2,6):
         ev(f"G.save.unlocked=6;travel({mi},false)"); pg.wait_for_timeout(1200); shot(f'map{mi}')
     # tiêu đề & chơi tiếp
+    ev("(()=>{let n=0;while(window.PERKS&&PERKS.offerPending()&&n++<40)PERKS.pickAuto()})()");pg.wait_for_timeout(300)
     tap('[data-p="gear"]'); tap('#gTitle'); pg.wait_for_timeout(800)
     ok('về màn hình chính có Chơi tiếp', pg.locator('#tCont').count()==1); shot('title2')
     tap('#tCont'); pg.wait_for_timeout(800); ok('Chơi tiếp vào lại game', ev("G.state==='play'") and ev("G.save.name")=='Bảo Thử')

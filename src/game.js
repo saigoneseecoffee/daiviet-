@@ -16,7 +16,7 @@ function recalc(){
   const S=G.save,C=CLASS_BY_ID[S.cls],b=C.base,L=S.lvl;
   const st={hp:b.hp[0]+b.hp[1]*(L-1),mp:b.mp[0]+b.mp[1]*(L-1),atk:b.atk[0]+b.atk[1]*(L-1),def:b.def[0]+b.def[1]*(L-1),crit:b.crit,cdmg:b.cdmg,spd:0,aspd:0,ls:0,exp:0,gold:0,atkp:0,hpp:0};
   for(const sl of SLOTS){const it=S.equip[sl];if(!it)continue;const s=itemStats(it);for(const k in s)st[k]=(st[k]||0)+s[k];for(const[k,v]of it.aff)st[k]=(st[k]||0)+v}
-  if(G.p)applyExtra(st);
+  if(G.p)applyExtra(st);HK.ev('stats',st);
   const p=G.p||{};
   p.maxhp=Math.round(st.hp*(1+st.hpp/100));p.maxmp=Math.round(st.mp);p.atk=Math.round(st.atk*(1+st.atkp/100));p.def=Math.round(st.def);
   p.crit=Math.min(75,st.crit);p.cdmg=st.cdmg;p.spdP=st.spd;p.spd=b.spd*(1+st.spd/100);p.aspd=st.aspd;p.interval=C.atk.interval/(1+st.aspd/100);
@@ -50,7 +50,7 @@ function genItem(ilvl,rar,slot){
     let v=AFFIX[k].roll(L)*rand(0.75,1.15)*(1+rar*0.05);if(AFFIX_CAP[k])v=Math.min(v,AFFIX_CAP[k]);
     v=AFFIX[k].u==='%'?Math.round(v*10)/10:Math.round(v);aff.push([k,v])}
   const tier=clamp(Math.floor((L-1)/6),0,5);const tn=slot==='vk'?TIER_NAMES[S.cls][tier]:TIER_NAMES[slot][tier];
-  return{id:S.iid++,slot,ilvl:L,rar,st,aff,enh:0,name:tn,cls:slot==='vk'?S.cls:undefined};
+  return HK.mod('item',{id:S.iid++,slot,ilvl:L,rar,st,aff,enh:0,name:tn,cls:slot==='vk'?S.cls:undefined});
 }
 function itemName(it){return it.name+(it.enh?' +'+it.enh:'')}
 function salvageValue(it){return{ore:1+it.rar*2+Math.floor(it.ilvl/10)+Math.floor(it.enh/2),gold:Math.round(it.ilvl*3*(it.rar+1))}}
@@ -65,7 +65,7 @@ function spawnEnemy(type,x,y,lv,elite){
     max:Math.round(hpB*D.hp*(elite?3.5:1)*(boss?1+G.save.ng*0.25:1)),atk:atkB*D.atk*(elite?1.4:1),edef:lv*1.2*(boss?1.5:1),
     spd:D.spd*rand(0.92,1.08),state:'idle',st:rand(0.5,2),f:Math.random()<0.5?1:-1,walk:Math.random()*6,moving:false,cd:rand(0.3,1.2),
     wx:x,wy:y,flash:0,kbx:0,kby:0,stun:0,slow:0,atkAnim:-1,tele:null,lock:0,dashT:0,hitP:false,enraged:false,patT:2,patI:0,summons:0,dead:false,hpShown:0};
-  e.hp=e.max;e.name=(elite?'Tinh Anh ':'')+D.name;G.enemies.push(e);return e;
+  e.hp=e.max;e.name=(elite?'Tinh Anh ':'')+D.name;G.enemies.push(e);HK.ev('spawn',e);return e;
 }
 function pickType(){
   const M=curMap(),S=G.save,step=M.quest[S.qs[S.map]];
@@ -94,7 +94,7 @@ function spawnElite(){const W=G.W,p=G.p;for(let t=0;t<40;t++){const i=pick(W.spa
 function hurtEnemy(e,raw,o){
   if(e.dead)return 0;o=o||{};const p=G.p;
   const plv=G.save.lvl;let dmg=raw*(1-e.edef/(e.edef+40+8*plv))*rand(0.92,1.08);
-  let crit=Math.random()*100<p.crit+(o.critB||0);if(crit)dmg*=p.cdmg/100;dmg=Math.max(1,Math.round(dmg));
+  let crit=Math.random()*100<p.crit+(o.critB||0);if(crit)dmg*=p.cdmg/100;o.crit=crit;dmg=Math.max(1,Math.round(HK.mod('dmgOut',dmg,e,o)));
   e.hp-=dmg;e.flash=0.1;
   if(o.kb&&!e.boss){const a=o.ang!=null?o.ang:Math.atan2(e.y-p.y,e.x-p.x);const k=o.kb*(e.elite?0.5:1);e.kbx+=Math.cos(a)*k;e.kby+=Math.sin(a)*k}
   if(o.stun&&!e.boss)e.stun=Math.max(e.stun,o.stun*(e.elite?0.6:1));
@@ -106,13 +106,14 @@ function hurtEnemy(e,raw,o){
   if(crit){G.hitstop=Math.max(G.hitstop,0.045);G.shake=Math.max(G.shake,4);Audio_.play('crit')}else Audio_.play('hit');
   if(p.ls>0)p.hp=Math.min(p.maxhp,p.hp+dmg*p.ls/100);
   if(e.hp<=0)killEnemy(e);
+  HK.ev('hit',e,dmg,o);
   return dmg;
 }
 function hurtPlayer(raw,elv,src){
   const p=G.p;if(p.ifr>0||G.state!=='play'||p.hp<=0)return;
   let dmg=raw*(1-p.def/(p.def+40+8*elv))*rand(0.9,1.1);
   if(p.buff.guard>0){dmg*=0.5;if(src&&!src.dead&&!src.boss)hurtEnemy(src,dmg*0.8,{noStagger:1})}
-  dmg=Math.max(1,Math.round(dmg));p.hp-=dmg;p.hurtT=0.25;
+  dmg=Math.max(1,Math.round(HK.mod('dmgIn',dmg,src)));p.hp-=dmg;p.hurtT=0.25;
   addFloat(p.x,p.y-68,'-'+fmt(dmg),'#ff5a4a',17);G.shake=Math.max(G.shake,5);Audio_.play('hurt');
   if(p.hp<=0){p.hp=0;die()}
 }
@@ -149,12 +150,13 @@ function killEnemy(e){
   if(e.boss)bossDefeated(e);
   Audio_.play(e.elite||e.boss?'crit':'hit');
   if(e.elite)G.hitstop=Math.max(G.hitstop,0.08);
+  HK.ev('kill',e);
 }
 function dropAt(x,y,kind,val){const a=Math.random()*TAU,v=rand(40,110);
   G.drops.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v*0.6,z:0,vz:rand(160,260),kind,val,t:0,id:Math.random()});
   if(kind==='item'&&val.rar>=2)Audio_.play('loot',val.rar);}
 function gainExp(x){const S=G.save,p=G.p;S.exp+=Math.round(x);let up=false;
-  while(S.exp>=need(S.lvl)){S.exp-=need(S.lvl);S.lvl++;S.sp++;up=true;S.score+=200;
+  while(S.exp>=need(S.lvl)){S.exp-=need(S.lvl);S.lvl++;S.sp++;up=true;S.score+=200;HK.ev('lvl',S.lvl);
     const C=CLASS_BY_ID[S.cls];C.skills.forEach((sk,i)=>{if(S.lvl>=sk.un&&S.skl[i]===0){S.skl[i]=1;S.sp--;UI.toast('Mở khóa kỹ năng: '+sk.name,'skill');UI.flashSkill(i)}})}
   if(up){recalc();p.hp=p.maxhp;p.mp=p.maxmp;Audio_.play('level');UI.levelUp(S.lvl);
     for(let i=0;i<40;i++){const a=i/40*TAU;addPart(p.x+Math.cos(a)*20,p.y-20,Math.cos(a)*180,Math.sin(a)*90-40,0.9,i%2?'#ffd23a':'#fff4d0',3,0)}
@@ -252,6 +254,7 @@ function basicAttack(){
     G.fx.push({k:'slash',x:p.x,y:p.y-18,a:p.aim,arc:A.type==='thrust'?0.5:arc,r:range,life:0.18,max:0.18,col:C.color,thrust:A.type==='thrust',flip:(p.combo=(p.combo||0)+1)%2});
     Audio_.play('swing');
   }
+  HK.ev('attack',t);
   return true;
 }
 function skillLv(i){return G.save.skl[i]}
@@ -301,7 +304,7 @@ function castSkill(i){
     case'thunder':{const ts=G.enemies.filter(e=>!e.dead&&dist(p.x,p.y,e.x,e.y)<360);for(let k=0;k<8;k++){later(k*0.09,()=>{const e=ts.length?ts[k%ts.length]:null;const x=e&&!e.dead?e.x:p.x+rand(-220,220),y=e&&!e.dead?e.y:p.y+rand(-220,220);
       G.fx.push({k:'bolt',x1:x+rand(-30,30),y1:y-420,x2:x,y2:y,life:0.25,max:0.25,col:'#d8e8ff',w:4});enemiesIn(x,y,60).forEach(en=>hurtEnemy(en,dmg,{stun:0.4}));G.fx.push({k:'ring',x,y,r:10,r2:64,life:0.3,max:0.3,col:'#bcd8ff'},{k:'flash',x,y,r:70,col:'#9fc4ff',life:0.22,max:0.22});pushCrack(x,y,46,5);G.shake=Math.max(G.shake,4);Audio_.play('zap')})}break}
   }
-  skillVfx(sk,i,aim,tx,ty);UI.castFx(i);return true;
+  skillVfx(sk,i,aim,tx,ty);UI.castFx(i);HK.ev('cast',i,sk);return true;
 }
 function usePot(k){const S=G.save,p=G.p;if(S[k]<=0){UI.toast(k==='potHP'?'Hết Bình Kim Sang. Mua ở Chợ.':'Hết Bình Nội Lực. Mua ở Chợ.');return false}
   if(k==='potHP'&&p.hp>=p.maxhp)return false;if(k==='potMP'&&p.mp>=p.maxmp)return false;
@@ -357,7 +360,7 @@ function update(dt){
   if(G.input.atk||(S.set.auto&&G.autoAtk))basicAttack();else p.approach=null;
   // NPC gần
   let nn=null;for(const n of W.npcs){if(dist(p.x,p.y,n.x,n.y)<80){nn=n;break}}if(nn!==G.nearNpc){G.nearNpc=nn;UI.npcPrompt(nn)}
-  updateEnemies(dt);updateProjs(dt);updateZones(dt);updateDrops(dt);updateFx(dt);
+  HK.ev('tick',dt);updateEnemies(dt);updateProjs(dt);updateZones(dt);updateDrops(dt);updateFx(dt);
   // sinh quái
   G.spawnT-=dt;if(G.spawnT<=0){G.spawnT=0.7;let near=0;for(const e of G.enemies)if(!e.boss&&dist2(e.x,e.y,p.x,p.y)<1000*1000)near++;
     const target=22+Math.min(10,S.map*2);if(near<target&&(!G.boss||dist(p.x,p.y,G.W.arena.x,G.W.arena.y)>G.W.arena.r+500))trySpawnPack(560,950);

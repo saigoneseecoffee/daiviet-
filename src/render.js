@@ -65,7 +65,7 @@ function render(dt){
     else if(it.d)drawDrop(it.d);
     else if(it.p)drawPlayer();
   }
-  drawTownLights(left,top,vw,vh);
+  drawTownLights(left,top,vw,vh);HK.ev('drawWorld',left,top,vw,vh);
   // đạn
   for(const b of G.projs)drawProj(b);
   // hiệu ứng
@@ -93,6 +93,7 @@ function render(dt){
   if(p&&p.hurtT>0){cx.fillStyle=`rgba(200,20,10,${p.hurtT*0.6})`;cx.fillRect(0,0,cv.width,cv.height)}
   if(p&&G.state==='play'&&p.hp<p.maxhp*0.3){cx.fillStyle=`rgba(160,0,0,${0.12+Math.sin(G.t*6)*0.06})`;cx.fillRect(0,0,cv.width,cv.height)}
   if(G.state==='play'||G.state==='dead')drawQuestArrow();
+  cx.setTransform(1,0,0,1,0,0);HK.ev('drawScreen');
 }
 function drawArena(W){
   const A=W.arena,S=G.save,step=MAPS[W.mi].quest[S?S.qs[W.mi]:0];const open=step&&step.t==='boss';const done=!step;
