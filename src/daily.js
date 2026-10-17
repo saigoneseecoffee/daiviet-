@@ -625,7 +625,7 @@ function drawTok(t){const g=cx,y=t.y-t.z-8+Math.sin(G.t*4+t.x)*2;g.save();
 HK.on('drawWorld',(left,top,vw,vh)=>{if(!G.save||!G.save.daily||(G.state!=='play'&&G.state!=='dead'))return;
   const ev=activeEvent();if(ev)drawDeco(ev.id,left,top,vw,vh);
   for(const t of DV.drops)drawTok(t);
-  const tl=curTitle(),p=G.p;if(tl&&p&&G.state==='play'){const y=p.y-(G.save.riding?118:96);cx.save();cx.font='700 11px "Be Vietnam Pro",system-ui,sans-serif';cx.textAlign='center';cx.textBaseline='middle';
+  const tl=curTitle(),p=G.p;if(tl&&p&&G.state==='play'&&!(window.OF&&OF.state&&OF.state()&&OF.state().plate)){const y=p.y-(G.save.riding?118:96);cx.save();cx.font='700 11px "Be Vietnam Pro",system-ui,sans-serif';cx.textAlign='center';cx.textBaseline='middle';
     const w=cx.measureText(tl.nm).width+14;cx.fillStyle='rgba(106,26,16,.82)';cx.beginPath();cx.roundRect(p.x-w/2,y-8,w,16,8);cx.fill();cx.strokeStyle='rgba(255,217,138,.8)';cx.lineWidth=1;cx.stroke();
     cx.fillStyle='#ffe7b0';cx.fillText(tl.nm,p.x,y+0.5);cx.restore()}});
 

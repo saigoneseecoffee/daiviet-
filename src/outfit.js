@@ -251,7 +251,7 @@ function dailyTitle(){const d=G.save&&G.save.daily;if(!d||!d.title||!window.DAIL
 function drawPlate(){const p=G.p,S=G.save;if(!p||!S||G.state==='title'||G.state==='dead')return;const st=ST();if(!st.plate)return;
   const ri=S.prog?S.prog.realm||0:0,R=REALM()[ri],lh=S.prog&&S.prog.lh&&window.PROG?PROG.lhTitle(S.prog.lh):'';
   const sc=Math.max(1,Math.round(DPR*G.cam.z*2)/2),P=plateCanvas(R.n+(lh?' · '+lh:''),R.c,dailyTitle()||'',sc);
-  const ty=p.y-(ridingMount()?122:98)-P.H;cx.globalAlpha=0.95;cx.drawImage(P.c,Math.round(p.x-P.W/2),ty,P.W,P.H);cx.globalAlpha=1}
+  const ty=p.y-(ridingMount()?122:98)-P.H;const fa=window.GON&&GON.on()?1-0.8*(GON.fight||0):1;if(fa<0.05)return;cx.globalAlpha=0.95*fa;cx.drawImage(P.c,Math.round(p.x-P.W/2),ty,P.W,P.H);cx.globalAlpha=1}
 /* vệt cung phụ theo màu phẩm chất vũ khí Hiếm trở lên */
 function rareArc(){const p=G.p,w=G.save&&G.save.equip&&G.save.equip.vk;if(!p||!w||w.rar<2||!p.trail||p.trail.length<3)return;
   const col=RARITY[Math.min(w.rar,RARITY.length-1)].color,tr=p.trail;

@@ -12,7 +12,7 @@ cat src/head.html
 echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>'
 echo '<script>'
 echo '"use strict";'
-for f in data core world human town itemart sprites game fx render ui systems perks legend boss2 prog chapters tower daily hub outfit bikip thanbinh luyendan giatuong nhiemvu main; do [ -f src/$f.js ] && { cat src/$f.js; echo; }; done
+for f in data core world human town itemart sprites game fx render ui systems perks legend boss2 prog chapters tower daily hub outfit bikip thanbinh luyendan giatuong nhiemvu gon main; do [ -f src/$f.js ] && { cat src/$f.js; echo; }; done
 echo '</script></body></html>'
 } > $OUT
 node -e "const s=require('fs').readFileSync('$OUT','utf8');new Function(s.split('<script>\n\"use strict\";')[1].split('</script>')[0]);" && echo "$(pwd)/$OUT"
