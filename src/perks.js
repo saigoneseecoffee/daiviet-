@@ -44,6 +44,10 @@ const EVO=[
 const DAN={id:'dan',n:'Đại Hoàn Đan',t:'dan',ic:'pill',c:'#e8c27a',max:999,d:r=>`Vĩnh viễn +2% công và +2% sinh lực (đang có +${2*(r-1)}%).`};
 const PK={};PKS.forEach(p=>PK[p.id]=p);EVO.forEach(e=>{e.t='evo';e.max=1;PK[e.id]=e});PK.dan=DAN;
 const NEED=3;
+/* nhịp bí kíp: mỗi lần thăng cấp đến cấp 10, sau đó mỗi 3 cấp. Cấp bí kíp 4 và 5 cần Cảnh Giới (prog.js). */
+const offerAt=L=>L<=10||L%3===0;
+const offersUpTo=L=>{let n=0;for(let l=2;l<=L;l++)if(offerAt(l))n++;return n};
+const rankCap=p=>Math.min(p.max,p.t==='evo'||p.id==='dan'||typeof progPerkCap!=='function'?p.max:progPerkCap());
 
 /* ---------- trạng thái ---------- */
 const P={act:false,busy:false,cards:null,autoT:0,lastLvl:-9,shield:0,fl:[],sh:[],flT:0,phT:0,chg:false,chgT:0,atkN:0,loiCd:0,anCd:0,boom:0,snd:{},ev:{},rowKey:'',dom:null};
@@ -63,9 +67,9 @@ function roll(exclude){
   const evs=EVO.filter(evoReady).filter(e=>!exclude.includes(e.id));
   for(const e of evs.slice(0,2))out.push(e.id);
   const own=owned();const distinct=Object.keys(own).filter(k=>own[k]>0&&PK[k]&&PK[k].t!=='evo'&&k!=='dan').length;
-  let pool=PKS.filter(p=>avail(p)&&R(p.id)<p.max&&!exclude.includes(p.id));
+  let pool=PKS.filter(p=>avail(p)&&R(p.id)<rankCap(p)&&!exclude.includes(p.id));
   if(distinct>=8){const o=pool.filter(p=>R(p.id)>0);if(o.length)pool=o}
-  if(pool.length+out.length<3&&exclude.length){pool=PKS.filter(p=>avail(p)&&R(p.id)<p.max&&!out.includes(p.id))}
+  if(pool.length+out.length<3&&exclude.length){pool=PKS.filter(p=>avail(p)&&R(p.id)<rankCap(p)&&!out.includes(p.id))}
   const w=p=>{let v=10;const r=R(p.id);if(r>0)v*=1.8;if(p.cls)v*=1.5;for(const e of evoFor(p.id)){const o=e.a===p.id?e.b:e.a;if(R(o)>0)v*=1.35}return v};
   while(out.length<3&&pool.length){let tot=0;for(const p of pool)tot+=w(p);let x=Math.random()*tot,k=0;for(;k<pool.length-1;k++){x-=w(pool[k]);if(x<=0)break}
     out.push(pool[k].id);pool.splice(k,1)}
@@ -312,7 +316,7 @@ function fireShot(n){const p=G.p;const ts=G.enemies.filter(e=>!e.dead&&dist2(p.x
   snd('magic',0.2);return true}
 
 /* ---------- móc sự kiện ---------- */
-HK.on('lvl',()=>{const s=ps();if(!s)return;s.pend++;P.lastLvl=G.t});
+HK.on('lvl',L=>{const s=ps();if(!s||!offerAt(L))return;s.pend++;P.lastLvl=G.t});
 HK.on('stats',st=>{if(!G.save||!G.save.perks)return;const r=R;
   st.crit+=3*r('bao');st.cdmg+=10*r('bao');st.aspd+=7*r('lien');st.hpp+=8*r('thiet');st.def*=1+0.05*r('thiet');
   st.spd+=4*r('langba')+6*r('thanhanh');st.ls+=0.8*r('haptinh');st.mp*=1+0.08*r('cuuduong');
@@ -447,7 +451,7 @@ window.addEventListener('keydown',e=>{if(!P.act)return;const c=e.code;
 
 /* ---------- bọc hàm dùng chung ---------- */
 const _startGame=startGame;
-startGame=function(){const S=G.save;if(S&&!S.perks)S.perks={r:{},pend:Math.min(Math.max(0,(S.lvl||1)-1),15),rr:0,picks:0};
+startGame=function(){const S=G.save;if(S&&!S.perks)S.perks={r:{},pend:Math.min(offersUpTo(S.lvl||1),15),rr:0,picks:0};
   P.shield=0;P.fl=[];P.sh=[];P.chg=false;P.chgT=0;P.ev={};P.act=false;P.cards=null;P.rowKey='';if(P.dom){P.dom.ov.hidden=true;P.dom.row.innerHTML=''}
   const r=_startGame.apply(this,arguments);dom();updRow();return r};
 const _travel=travel;travel=function(){P.fl=[];P.sh=[];return _travel.apply(this,arguments)};
@@ -455,9 +459,10 @@ const _open=UI.open;UI.open=function(){if(P.act&&!P.busy){P.dom.ov.hidden=true;P
 const _rt=UI.renderTracker;UI.renderTracker=function(){const r=_rt.apply(this,arguments);placeRow();return r};
 const _ps=UI.p_skill;UI.p_skill=function(){let h=_ps.apply(this,arguments);const o=owned();const ids=Object.keys(o).filter(k=>o[k]>0&&PK[k]).sort((a,b)=>(PK[b].t==='evo')-(PK[a].t==='evo')||o[b]-o[a]);
   h+=`<div class="sec pkList" style="margin-top:14px"><h4>BÍ KÍP ĐÃ LĨNH NGỘ · ${ids.length}</h4>`;
-  if(!ids.length)h+=`<p class="hist" style="color:var(--dim)">Mỗi lần thăng cấp được chọn một trong ba bí kíp. Hai bí kíp cùng đạt cấp 3 sẽ hợp thành Tuyệt kỹ.</p>`;
+  if(!ids.length)h+=`<p class="hist" style="color:var(--dim)">Đến cấp 10 mỗi lần thăng cấp, sau đó cứ 3 cấp được chọn một trong ba bí kíp. Hai bí kíp cùng đạt cấp 3 sẽ hợp thành Tuyệt kỹ.</p>`;
   for(const k of ids){const p=PK[k],evo=p.t==='evo';let rc='';if(!evo){const e=evoFor(k)[0];if(e){const ot=PK[e.a===k?e.b:e.a];rc=`Ghép với ${esc(ot.n)} → Tuyệt kỹ ${esc(e.n)} (cả hai cấp ${NEED})`}}
     h+=`<div class="skc"><canvas data-pk="${k}" width="128" height="128"></canvas><div><h5>${esc(p.n)} <span style="color:var(--dim);font-weight:600">· ${evo?'Tuyệt kỹ':k==='dan'?'đã dùng '+o[k]:'cấp '+o[k]+'/'+p.max}</span></h5><p>${esc(evo?p.d:p.d(o[k]))}</p>${rc?`<div class="rc">${rc}</div>`:''}</div><span></span></div>`}
+  if(typeof progPerkCapNote==='function')h+=progPerkCapNote();
   const rd=EVO.filter(e=>!R(e.id)&&(!PK[e.a].cls||PK[e.a].cls===cls()));
   if(rd.length)h+=`<p class="hist" style="color:var(--dim);margin-top:6px">Tuyệt kỹ chưa mở: ${rd.map(e=>`<b style="color:var(--vang2)">${esc(e.n)}</b> (${esc(PK[e.a].n)} + ${esc(PK[e.b].n)})`).join(', ')}.</p>`;
   return h+'</div>'};
@@ -470,6 +475,7 @@ window.PERKS={
   offerPending(){const s=ps();return s?s.pend+(P.act?0:0):0},
   showing(){return P.act},
   grant(id,n){const s=ps();if(!s||!PK[id])return;s.r[id]=Math.min(PK[id].max,(s.r[id]||0)+(n||1));recalc();P.rowKey='';updRow()},
+  offerAt,offersUpTo,
   list:()=>PKS.map(p=>p.id),evos:()=>EVO.map(e=>e.id),_P:P,_icon:drawPkIcon,
 };
 })();

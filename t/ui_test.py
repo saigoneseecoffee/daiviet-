@@ -163,7 +163,7 @@ with sync_playwright() as p:
     pg.wait_for_timeout(500); ok('màn Trọng thương', pg.is_visible('#dead')); shot('dead')
     pg.wait_for_timeout(3800); ok('hồi sinh ở trại', not pg.is_visible('#dead') and ev("G.state==='play'"))
     # boss -> qua chương
-    ev("G.save.qs[0]=3;G.save.qp=0;G.p.x=G.W.arena.x;G.p.y=G.W.arena.y+60")
+    ev("G.save.qs[0]=MAPS[0].quest.length-1;G.save.qp=0;G.p.x=G.W.arena.x;G.p.y=G.W.arena.y+60")
     pg.wait_for_timeout(1200); ok('boss xuất hiện khi vào đấu trường', ev("!!G.boss"), ev("G.boss&&G.boss.name")); shot('boss')
     pg.wait_for_timeout(1500); shot('boss2')
     ev("hurtEnemy(G.boss,1e9,{})")
@@ -172,8 +172,8 @@ with sync_playwright() as p:
         tap('#clNext'); pg.wait_for_timeout(800); ok('sang chương 2 Cổ Loa', ev("G.save.map")==1 and pg.is_visible('#story')); shot('story2')
         tap('#stGo'); pg.wait_for_timeout(1500); shot('coloa')
     # các chương khác: ảnh chụp
-    for mi in range(2,6):
-        ev(f"G.save.unlocked=6;travel({mi},false)"); pg.wait_for_timeout(1200); shot(f'map{mi}')
+    for mi in range(2,12):
+        ev(f"G.save.unlocked=12;travel({mi},false)"); pg.wait_for_timeout(1200); shot(f'map{mi}')
     # tiêu đề & chơi tiếp
     ev("(()=>{let n=0;while(window.PERKS&&PERKS.offerPending()&&n++<40)PERKS.pickAuto()})()");pg.wait_for_timeout(300)
     tap('[data-p="gear"]'); tap('#gTitle'); pg.wait_for_timeout(800)

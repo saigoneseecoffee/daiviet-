@@ -5,7 +5,7 @@ cat src/head.html
 echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>'
 echo '<script>'
 echo '"use strict";'
-for f in data core world human town itemart sprites game fx render ui systems perks legend boss2 main; do cat src/$f.js; echo; done
+for f in data core world human town itemart sprites game fx render ui systems perks legend boss2 prog chapters tower daily main; do cat src/$f.js; echo; done
 echo '</script>'
 } > dist/dai-viet-hiep-khach.html
 # trang thử nghiệm: bọc skeleton giống artifact

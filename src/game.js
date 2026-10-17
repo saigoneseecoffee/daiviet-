@@ -2,9 +2,33 @@
 const G={save:null,W:null,p:null,enemies:[],projs:[],fx:[],parts:[],floats:[],drops:[],tele:[],zones:[],timers:[],amb:[],
   t:0,cam:{x:0,y:0,z:1},shake:0,hitstop:0,state:'title',slow:1,boss:null,eid:1,spawnT:0,saveT:0,input:{mx:0,my:0,atk:false},
   lootFull:0,lastTarget:null,questArrow:null,eliteTimer:0,campR:520,dirty:{}};
-const need=L=>Math.floor(40+30*Math.pow(L,1.7));
+/* ---------- nhịp lên cấp (xem prog.js để biết bảng thời gian) ----------
+   expKill(lv): kinh nghiệm một quái thường cùng cấp. killsFor(L): số quái cùng cấp để qua cấp L.
+   Hiệu chỉnh bằng t/prog_pace.py: chương 1 ≈ 15 phút, chương 12 ≈ 4 giờ, cả chiến dịch ≈ 23 giờ người chơi. */
+const LV_CAP=300;
+const expKill=lv=>4.2+2.3*lv;
+/* từ cấp 20 giảm dần lượng quái cần (còn 30% từ cấp 90) để chương sau không thành cày suông; bù bằng 10 bước nhiệm vụ mỗi chương */
+const killsFor=L=>Math.round(60*Math.pow(L,0.8)*(1-Math.exp(-L/2))*(1+0.6*Math.exp(-L/6))*(L<=20?1:1-0.7*Math.min(1,(L-20)/70)));
+const need=L=>Math.floor(expKill(L)*killsFor(Math.min(L,LV_CAP)));
+/* bù kinh nghiệm khi cấp thấp hơn boss chương đang đánh: mỗi cấp thiếu +12%, tối đa ×2 (tránh tường cứng trước boss) */
+/* đấu trường boss chỉ mở khi cấp ≥ cấp boss − 1 (trả về cấp cần, 0 nếu đã đủ). Luân Hồi không chặn. */
+function bossGate(){const S=G.save;if(S.ng)return 0;const need_=curMap().lv[1]-4;return S.lvl<need_?need_:0}
+function catchUp(){const S=G.save,M=curMap();const gap=M.lv[1]+lvOffset()-1-S.lvl;return gap>0?Math.min(2,1+0.12*gap):1}
+/* thưởng kinh nghiệm cho việc lặp lại được (Dã Tẩu, quái triều, tháp, nhiệm vụ ngày): f × "một thanh chuẩn" ~ (120+cấp) quái cùng cấp,
+   không theo need() để không lấn át việc hạ quái khi đường cong kinh nghiệm dốc lên. Nhiệm vụ chính và boss vẫn tính theo need(). */
+const bonusExp=f=>{const L=G.save.lvl;return f*expKill(L)*(120+L)};
+const needOld=L=>Math.floor(40+30*Math.pow(L,1.7));
 const curMap=()=>MAPS[G.save.map];
-const lvOffset=()=>G.save.ng*30;
+/* Luân Hồi: mỗi vòng quái mạnh hơn 130 cấp (chiến dịch 12 chương dài 126 cấp) */
+const LH_STEP=130;
+const lvOffset=()=>G.save.ng*LH_STEP;
+/* điểm kỹ năng: cấp chẵn đến cấp 10, sau đó mỗi 5 cấp (boss chương lần đầu +1, ở prog.js) */
+const spAt=L=>L<=10?(L%2===0?1:0):(L%5===0?1:0);
+/* kỹ năng tối đa cấp 20: cấp 1–10 +13%/cấp, 11–20 +15%/cấp; hồi chiêu −2%/cấp đến 10, −1%/cấp sau đó */
+const SKILL_MAX=20;
+const skillMult=lv=>{lv=Math.max(1,lv);return 1+0.13*(Math.min(lv,10)-1)+0.15*Math.max(0,lv-10)};
+const skillCdK=lv=>{lv=Math.max(1,lv);return 1-0.02*(Math.min(lv,10)-1)-0.01*Math.max(0,lv-10)};
+function skillCd(i){const p=G.p;return p.cls.skills[i].cd*skillCdK(G.save.skl[i])*(1-(p.cdr||0)/100)}
 
 /* ---------- chỉ số người chơi ---------- */
 function itemMult(it){return 1+0.1*it.enh+(it.enh>10?0.06*(it.enh-10):0)}
@@ -128,8 +152,8 @@ function killEnemy(e){
   for(let i=0;i<14;i++){const a=Math.random()*TAU,v=rand(60,220);addPart(e.x,e.y-14,Math.cos(a)*v,Math.sin(a)*v-80,rand(0.4,0.8),i%3?col:'#fff4d0',rand(2,4.5),500)}
   for(let i=0;i<4;i++)addPart(e.x+rand(-10,10),e.y-10,rand(-10,10),rand(-60,-30),1.2,'#fff0c8',rand(2,4),-20,'c',1);G.fx.push({k:'flash',x:e.x,y:e.y-14,r:e.elite||e.boss?90:44,col:e.elite?'#ffc53d':'#fff0c8',life:0.22,max:0.22});
   // kinh nghiệm
-  const diff=e.lv-lvOffset()-S.lvl+lvOffset();const xm=clamp(1+(e.lv-S.lvl)*0.08,0.3,1.6);
-  let xp=(4.2+2.3*e.lv)*(e.elite?4:1)*(e.boss?25:1)*xm*(1+p.expB/100);gainExp(xp);mountGainExp(1+e.lv*0.15*(e.elite?3:1));
+  const xm=clamp(1+(e.lv-S.lvl)*0.08,0.3,1.6);
+  let xp=expKill(e.lv)*(e.elite?4:1)*(e.boss?25:1)*xm*catchUp()*(1+p.expB/100);gainExp(xp);mountGainExp(1+e.lv*0.15*(e.elite?3:1));
   if(e.camp!=null)campMemberDied(e);if(e.horde&&G.horde)G.horde.kill++;
   if(e.boss)dropAt(e.x,e.y,'frag',2);else if(e.elite&&Math.random()<0.05)dropAt(e.x,e.y,'frag',1);
   S.kills++;G.combo=(G.t-(G.comboT||-9)<2.6?(G.combo||0):0)+1;G.comboT=G.t;
@@ -156,8 +180,10 @@ function dropAt(x,y,kind,val){const a=Math.random()*TAU,v=rand(40,110);
   G.drops.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v*0.6,z:0,vz:rand(160,260),kind,val,t:0,id:Math.random()});
   if(kind==='item'&&val.rar>=2)Audio_.play('loot',val.rar);}
 function gainExp(x){const S=G.save,p=G.p;S.exp+=Math.round(x);let up=false;
-  while(S.exp>=need(S.lvl)){S.exp-=need(S.lvl);S.lvl++;S.sp++;up=true;S.score+=200;HK.ev('lvl',S.lvl);
-    const C=CLASS_BY_ID[S.cls];C.skills.forEach((sk,i)=>{if(S.lvl>=sk.un&&S.skl[i]===0){S.skl[i]=1;S.sp--;UI.toast('Mở khóa kỹ năng: '+sk.name,'skill');UI.flashSkill(i)}})}
+  while(S.lvl<LV_CAP&&S.exp>=need(S.lvl)){S.exp-=need(S.lvl);S.lvl++;S.sp+=spAt(S.lvl);up=true;S.score+=200;HK.ev('lvl',S.lvl);
+    const C=CLASS_BY_ID[S.cls];C.skills.forEach((sk,i)=>{if(S.lvl>=sk.un&&S.skl[i]===0){S.skl[i]=1;UI.toast('Mở khóa kỹ năng: '+sk.name,'skill');UI.flashSkill(i)}})}
+  // cấp tối đa: kinh nghiệm dư hóa Chân Khí (300 Chân Khí mỗi thanh kinh nghiệm)
+  if(S.lvl>=LV_CAP&&S.exp>=need(S.lvl)){const n=Math.floor(S.exp/need(S.lvl));S.exp-=n*need(S.lvl);giveRes('cq',300*n,'cap')}
   if(up){recalc();p.hp=p.maxhp;p.mp=p.maxmp;Audio_.play('level');UI.levelUp(S.lvl);
     for(let i=0;i<40;i++){const a=i/40*TAU;addPart(p.x+Math.cos(a)*20,p.y-20,Math.cos(a)*180,Math.sin(a)*90-40,0.9,i%2?'#ffd23a':'#fff4d0',3,0)}
     G.fx.push({k:'ring',x:p.x,y:p.y,r:10,r2:160,life:0.7,max:0.7,col:'#ffd23a'},{k:'pillar',x:p.x,y:p.y,w:34,h:420,col:'#ffd23a',life:1.1,max:1.1})}
@@ -176,7 +202,7 @@ function questEvent(ev,e){
 }
 function completeStep(){
   const S=G.save,M=curMap(),mi=S.map,si=S.qs[mi];
-  const gold=60*(mi+1)*(si+1)*(1+S.ng),ore=2+mi;S.gold+=gold;S.ore+=ore;gainExp(need(S.lvl)*0.35);S.score+=500*(mi+1)*(1+S.ng);
+  const gold=60*(mi+1)*(si+1)*(1+S.ng),ore=2+mi;S.gold+=gold;S.ore+=ore;gainExp(need(S.lvl)*0.5);S.score+=500*(mi+1)*(1+S.ng);
   let extra='';if(si===1){const it=genItem(enemyLevelAt(G.p.x,G.p.y)+1,2);addToBag(it,true);extra=', '+itemName(it)}
   UI.questDone(M.quest[si].txt,`+${fmt(gold)} vàng, +${ore} Huyền Thiết${extra}`);
   S.qs[mi]++;S.qp=0;G.dirty.quest=1;G.eliteTimer=0;Audio_.play('quest');
@@ -186,7 +212,7 @@ function completeStep(){
 function newSide(){const S=G.save,q=pick(SIDE_Q);let n=randi(q.n[0],q.n[1]);if(q.t==='gold')n=50*S.lvl+150;S.side={t:q.t,n,p:0,txt:q.txt(n)};G.dirty.quest=1}
 function sideEvent(t,v){const S=G.save;if(!S.side)newSide();if(S.side.t!==t)return;S.side.p+=v;G.dirty.quest=1;
   if(S.side.p>=S.side.n){S.sideChain++;const c=S.sideChain;const gold=Math.round(30*S.lvl*(1+c*0.05)),ore=1+(c%3===0?1:0);
-    S.gold+=gold;S.ore+=ore;gainExp(need(S.lvl)*0.12);S.score+=150*(1+S.ng);let ex='';
+    S.gold+=gold;S.ore+=ore;gainExp(bonusExp(0.12));S.score+=150*(1+S.ng);let ex='';
     if(c%5===0){S.charm++;ex=', +1 Bùa Bảo Hộ'}if(c%10===0){const it=genItem(S.lvl+1,3);addToBag(it,true);ex+=', '+itemName(it)}
     UI.toast(`Dã Tẩu chuỗi ${c}: +${fmt(gold)} vàng, +${ore} Huyền Thiết${ex}`,'quest');Audio_.play('quest');newSide()}}
 
@@ -263,8 +289,8 @@ function castSkill(i){
   const S=G.save,p=G.p,sk=p.cls.skills[i];
   if(S.lvl<sk.un||S.skl[i]<=0){UI.toast(`${sk.name} mở ở cấp ${sk.un}`);return false}
   if(p.skCd[i]>0)return false;if(p.mp<sk.mp){UI.toast('Không đủ nội lực');UI.pulse('#btnMP');return false}if(p.dash)return false;
-  const lv=S.skl[i],m=sk.mult*(1+0.13*(lv-1)),dmg=p.atk*m;
-  p.mp-=sk.mp;p.skCd[i]=sk.cd*(1-0.02*(lv-1));S.tut.skill=true;sideEvent('skill',1);
+  const lv=S.skl[i],m=sk.mult*skillMult(lv),dmg=p.atk*m;
+  p.mp-=sk.mp;p.skCd[i]=skillCd(i);S.tut.skill=true;sideEvent('skill',1);
   const t=aimTarget(420);let aim=t?Math.atan2(t.y-p.y,t.x-p.x):p.aim;p.aim=aim;p.f=Math.cos(aim)>=0?1:-1;p.atkAnim=0;
   const C=p.cls.color,tx=t?t.x:p.x+Math.cos(aim)*160,ty=t?t.y:p.y+Math.sin(aim)*160;
   const later=(dt,fn)=>G.timers.push({t:dt,fn});
@@ -355,6 +381,8 @@ function update(dt){
   const step=curMap().quest[S.qs[S.map]];const ad=dist(p.x,p.y,W.arena.x,W.arena.y);
   if((!step||step.t!=='boss')&&!G.boss&&ad<W.arena.r+20){const a=Math.atan2(p.y-W.arena.y,p.x-W.arena.x);p.x=W.arena.x+Math.cos(a)*(W.arena.r+22);p.y=W.arena.y+Math.sin(a)*(W.arena.r+22);
     if(!G.arenaMsgT||G.t-G.arenaMsgT>3){G.arenaMsgT=G.t;UI.toast(step?'Đấu trường bị phong ấn. Hoàn thành nhiệm vụ chính trước.':'Boss đã bị đánh bại. Hãy đi tiếp chương sau qua Xa Phu.')}}
+  if(step&&step.t==='boss'&&!G.boss&&ad<W.arena.r+20&&bossGate()){const a=Math.atan2(p.y-W.arena.y,p.x-W.arena.x);p.x=W.arena.x+Math.cos(a)*(W.arena.r+22);p.y=W.arena.y+Math.sin(a)*(W.arena.r+22);
+    if(!G.arenaMsgT||G.t-G.arenaMsgT>3){G.arenaMsgT=G.t;UI.toast(`Khí tức chưa đủ: cần cấp ${bossGate()} để vào đấu trường. Luyện công quanh đây (đang được bù kinh nghiệm).`,'warn')}}
   if(step&&step.t==='boss'&&!G.boss&&ad<W.arena.r-30)startBoss();
   // đánh
   if(G.input.atk||(S.set.auto&&G.autoAtk))basicAttack();else p.approach=null;
@@ -597,7 +625,8 @@ function autoPlay(dt){
 function questTarget(){
   const S=G.save,W=G.W,M=curMap(),step=M.quest[S.qs[S.map]],p=G.p;
   if(!step)return{x:W.npcs[3].x,y:W.npcs[3].y,label:'Xa Phu'};
-  if(step.t==='boss')return{x:W.arena.x,y:W.arena.y,label:M.quest[3].txt};
+  if(step.t==='boss'&&!bossGate())return{x:W.arena.x,y:W.arena.y,label:M.quest[3].txt};
+  if(step.t==='boss'){const e=nearestEnemy(p.x,p.y,900);if(e)return{x:e.x,y:e.y,label:'Luyện công tới cấp '+bossGate(),e};const pts=W.pathPts;const best=pts[Math.floor(pts.length*0.6)];return{x:best.x,y:best.y,label:'Luyện công tới cấp '+bossGate()}}
   const want=step.t==='elite'?(e=>e.elite):(e=>e.type===step.e);
   const e=nearestEnemy(p.x,p.y,1100,want);if(e)return{x:e.x,y:e.y,label:e.name,e};
   const lv=M.lv,f=clamp((S.lvl-lv[0]-lvOffset()+lvOffset())/(lv[1]-lv[0]),0.18,0.85);const pts=W.pathPts;const best=pts[Math.floor(pts.length*f)];

@@ -63,7 +63,7 @@ const UI={
     for(let i=0;i<3;i++){const sk=p.cls.skills[i],el=$('#s'+i),un=S.lvl>=sk.un&&S.skl[i]>0;
       const st=un?(p.skCd[i]>0?'cd':p.mp<sk.mp?'mp':'ok'):'lock';
       el.classList.toggle('lock',!un);el.classList.toggle('nomp',st==='mp');
-      const cdMax=sk.cd*(1-0.02*(S.skl[i]-1));const a=p.skCd[i]>0?p.skCd[i]/cdMax*360:0;el.querySelector('.cd').style.setProperty('--a',a+'deg');
+      const cdMax=skillCd(i);const a=p.skCd[i]>0?p.skCd[i]/cdMax*360:0;el.querySelector('.cd').style.setProperty('--a',a+'deg');
       const txt=!un?'':p.skCd[i]>0?(p.skCd[i]<1?p.skCd[i].toFixed(1):Math.ceil(p.skCd[i])):'';
       const key='sk'+i;if(c[key]!==txt+st){c[key]=txt+st;el.querySelector('.cdt').textContent=!un?'Cấp '+sk.un:txt}}
     // nhiệm vụ
@@ -71,7 +71,7 @@ const UI={
     // boss
     const b=G.boss;$('#bossbar').hidden=!b||b.dead;if(b&&!b.dead){$('#bossHp').style.transform=`scaleX(${Math.max(0,b.hp/b.max)})`;const bn=b.name+' · cấp '+b.lv+(b.enraged?' · Nổi giận':'');if(c.bn!==bn){c.bn=bn;$('#bossName').textContent=bn}}
     // chấm đỏ menu
-    const dots={bag:S.bag.filter(it=>itemPower(it)>itemPower(S.equip[it.slot])).length,skill:S.sp,quest:0};
+    const dots={bag:S.bag.filter(it=>itemPower(it)>itemPower(S.equip[it.slot])).length,skill:Math.max(0,S.sp|0),quest:0};
     for(const k in dots){const d=document.querySelector(`[data-p="${k}"] .dot`);if(!d)continue;const v=dots[k];if(c['d'+k]!==v){c['d'+k]=v;d.hidden=!v;d.textContent=v>9?'9+':v}}
     $('#bAuto').classList.toggle('on',!!S.set.auto);$('#bRide').classList.toggle('on',!!S.riding);
     const hz=$('#horde');if(G.horde){hz.hidden=false;const ht=`Quái triều ${G.horde.kill}/${G.horde.need} · ${Math.ceil(G.horde.t)} giây`;if(c.hz!==ht){c.hz=ht;hz.textContent=ht}}else hz.hidden=true;
@@ -271,16 +271,25 @@ const UI={
     if(S.gold<pr)return;S.gold-=pr;S[s.id]+=n;Audio_.play('coin');this.toast(`Đã mua ${n} ${s.name}`);G.dirty.pot=1;this.render()})},
 
   /* Kỹ năng */
-  p_skill(){const S=G.save,C=CLASS_BY_ID[S.cls],p=G.p;
-    let h=`<p class="hist" style="margin-bottom:12px">Điểm kỹ năng còn lại: <b style="color:var(--vang2)">${S.sp}</b>. Mỗi cấp tăng 13% sát thương và giảm 2% hồi chiêu. Lên cấp nhân vật để nhận thêm điểm.</p>`;
+  p_skill(){const S=G.save,C=CLASS_BY_ID[S.cls],p=G.p;progEnsure(S);
+    const cap=skillCap();
+    let h=`<div class="skRes"><div><b>${S.sp}</b><span>Điểm kỹ năng</span></div><div><b>${fmt(S.tq||0)}</b><span>Tàn Quyển</span></div><div><b>${fmt(S.gold)}</b><span>Vàng</span></div></div>
+      <p class="hist skRule">Cấp 1–10 chỉ tốn <b>điểm kỹ năng</b> (mỗi cấp chẵn đến cấp 10, sau đó mỗi 5 cấp, hạ boss chương lần đầu +1). Cấp 11–20 tốn thêm <b>Tàn Quyển</b> và <b>vàng</b>, cần Cảnh Giới đủ cao. Hiện tối đa <b>cấp ${cap}</b>.</p>`;
     h+=`<div class="skc"><canvas data-ic="atk" width="128" height="128"></canvas><div><h5>Đánh thường · ${esc(C.phai)}</h5><p>${C.atk.type==='shot'?'Bắn xa, tầm '+C.atk.range:'Cận chiến, tầm '+C.atk.range}. Giữ nút để đánh liên tục. Tự nhắm quái gần nhất.</p><div class="meta">${(1/p.interval).toFixed(2)} đòn/giây · ${fmtFull(p.atk)} sát thương</div></div><span></span></div>`;
-    C.skills.forEach((sk,i)=>{const lv=S.skl[i],un=S.lvl>=sk.un,m=sk.mult*(1+0.13*(Math.max(1,lv)-1));
-      h+=`<div class="skc${un?'':' lock'}"><canvas data-ic="${sk.id}" width="128" height="128"></canvas><div><h5>${esc(sk.name)} <span style="color:var(--dim);font-weight:600">· ${un?'cấp '+lv+'/10':'mở ở cấp '+sk.un}</span></h5><p>${esc(sk.d)}</p>
-        <div class="meta">${sk.mult?Math.round(m*100)+'% công':'Phòng thủ'} · ${sk.mp} nội lực · hồi ${(sk.cd*(1-0.02*(Math.max(1,lv)-1))).toFixed(1)}s${FINE?' · phím '+['K','L','I'][i]:''}</div></div>
-        <button class="btn sm" data-up="${i}" ${!un||S.sp<=0||lv>=10?'disabled':''}>+ Nâng</button></div>`});
+    C.skills.forEach((sk,i)=>{const lv=S.skl[i],un=S.lvl>=sk.un,L=Math.max(1,lv),m=sk.mult*skillMult(L);const c=skillUpCost(i);
+      let cost='';
+      if(un&&lv<SKILL_MAX){
+        if(c.realm>=0)cost=`<div class="skCost lockd">Cần Cảnh Giới <b>${esc(REALMS[c.realm].n)}</b> để lên cấp ${lv+1}</div>`;
+        else{const ok=(k,v)=>k==='sp'?S.sp>=v:k==='tq'?(S.tq||0)>=v:S.gold>=v;
+          const part=(k,v,l)=>`<span class="${ok(k,v)?'':'no'}">${k==='gold'?fmt(v):v} ${l}</span>`;
+          cost=`<div class="skCost"><em>Lên cấp ${lv+1}</em>${part('sp',c.sp,'điểm')}${c.tq?part('tq',c.tq,'Tàn Quyển'):''}${c.gold?part('gold',c.gold,'vàng'):''}<em class="g">${sk.mult?'+'+Math.round((skillMult(lv+1)-skillMult(L))*sk.mult*100)+'% công':'hồi chiêu nhanh hơn'}</em></div>`}}
+      else if(un)cost=`<div class="skCost max">Đã đạt cấp tối đa</div>`;
+      h+=`<div class="skc${un?'':' lock'}"><canvas data-ic="${sk.id}" width="128" height="128"></canvas><div><h5>${esc(sk.name)} <span style="color:var(--dim);font-weight:600">· ${un?'cấp '+lv+'/'+cap:'mở ở cấp '+sk.un}</span></h5><p>${esc(sk.d)}</p>
+        <div class="meta">${sk.mult?Math.round(m*100)+'% công':'Phòng thủ'} · ${sk.mp} nội lực · hồi ${(sk.cd*skillCdK(L)*(1-(p.cdr||0)/100)).toFixed(1)}s${FINE?' · phím '+['K','L','I'][i]:''}</div>${cost}</div>
+        <button class="btn sm skUp" data-up="${i}" ${!un||!c.can?'disabled':''} aria-label="Nâng ${esc(sk.name)}">+ Nâng</button></div>`});
     return h},
   b_skill(body){body.querySelectorAll('canvas[data-ic]').forEach(c=>{const g=c.getContext('2d');drawSkillIcon(g,c.dataset.ic,128)});
-    body.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const S=G.save,i=+b.dataset.up;if(S.sp<=0||S.skl[i]>=10)return;S.sp--;S.skl[i]++;Audio_.play('level');this.render()})},
+    body.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const i=+b.dataset.up,err=skillUp(i);if(err){this.toast(err,'warn');return}Audio_.play('level');UI.flashSkill(i);this.render()})},
 
   /* Nhiệm vụ */
   p_quest(){const S=G.save,M=curMap(),si=S.qs[S.map];

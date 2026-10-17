@@ -30,11 +30,19 @@ const store={
 };
 /* ---- điểm nối cho mô-đun mở rộng (perks.js, legend.js, boss2.js) ----
    HK.on(tên, hàm) để đăng ký. HK.ev chỉ báo sự kiện; HK.mod truyền giá trị qua từng hàm, hàm trả về giá trị mới (hoặc undefined để giữ nguyên).
-   Sự kiện: stats(st) · spawn(e) · hit(e,dmg,o) · kill(e) · lvl(level) · attack(target) · cast(i,sk) · tick(dt) · drawWorld(left,top,vw,vh) · drawScreen()
+   Sự kiện: res(k,n,why) · stats(st) · spawn(e) · hit(e,dmg,o) · kill(e) · lvl(level) · attack(target) · cast(i,sk) · tick(dt) · drawWorld(left,top,vw,vh) · drawScreen()
    Biến đổi: dmgOut(dmg,e,o) · dmgIn(dmg,src) · item(it) */
 const HK={_h:{},on(n,f){(this._h[n]||(this._h[n]=[])).push(f)},
   ev(n,a,b,c,d){const l=this._h[n];if(l)for(const f of l){try{f(a,b,c,d)}catch(err){console.error(err)}}},
   mod(n,v,a,b,c){const l=this._h[n];if(l)for(const f of l){try{const r=f(v,a,b,c);if(r!==undefined)v=r}catch(err){console.error(err)}}return v}};
+/* ---- tài nguyên dài hạn dùng chung giữa các mô-đun ----
+   cq: Chân Khí (luyện Cảnh Giới, Kinh Mạch) · tq: Tàn Quyển (nâng kỹ năng trên cấp 10)
+   Cộng tài nguyên luôn qua giveRes để các mô-đun khác (thành tựu, nhiệm vụ ngày) nghe được sự kiện 'res'. */
+const RES_NAME={gold:'vàng',ore:'Huyền Thiết',charm:'Bùa Bảo Hộ',cq:'Chân Khí',tq:'Tàn Quyển',potHP:'Bình Kim Sang',potMP:'Bình Nội Lực'};
+function giveRes(k,n,why){const S=G.save;if(!S||!n)return;S[k]=(S[k]||0)+n;HK.ev('res',k,n,why);G.dirty.stats=1}
+/* ngày theo giờ máy người chơi, dạng 20261016; đổi ngày lúc 0 giờ */
+function dayKey(d){d=d||new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate()}
+function weekKey(d){d=d||new Date();const t=new Date(d.getFullYear(),d.getMonth(),d.getDate());t.setDate(t.getDate()-((t.getDay()+6)%7));return dayKey(t)}
 function loadSave(){
   try{const hot=window.claude&&window.claude.hot&&window.claude.hot.data;if(hot&&hot.save)return hot.save}catch(e){}
   const raw=store.get(SAVE_KEY);if(!raw)return null;
