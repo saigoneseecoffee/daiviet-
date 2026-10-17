@@ -117,6 +117,9 @@ function setupInput(){
   document.addEventListener('gesturestart',e=>e.preventDefault());
   document.addEventListener('dblclick',e=>e.preventDefault());
   document.addEventListener('visibilitychange',()=>{if(document.hidden){saveGame();if(G.state==='play'&&!UI.panel)UI.open('gear')}});
+  /* mở khóa âm thanh ở mọi cử chỉ người dùng (iOS chỉ chấp nhận touchend/click, không nhận touchstart/pointerdown) */
+  const unl=()=>Audio_.unlock();['touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,unl,{capture:true,passive:true}));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Audio_.ctx)Audio_.kick()});
 }
 function toggleAuto(){const s=G.save.set;s.auto=!s.auto;UI.toast(s.auto?'Đã bật Tự đánh':'Đã tắt Tự đánh');Audio_.play('ui')}
 const joy={id:null,dx:0,dy:0},mouse={down:false,x:0,y:0,atk:false};let atkPtr=null;

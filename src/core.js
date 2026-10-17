@@ -60,8 +60,16 @@ function newSave(cls,name){
 /* ============ ÂM THANH (tổng hợp bằng WebAudio) ============ */
 const Audio_={
   ctx:null,master:null,sfxG:null,musG:null,on:false,musicTimer:null,step:0,mode:0,
+  /* iPhone: (1) đặt phiên âm thanh là 'playback' để vẫn kêu khi gạt nút im lặng (Safari 17+), bản cũ hơn thì phát một thẻ <audio> im lặng lặp lại;
+     (2) gọi lại ở mọi cử chỉ, kể cả touchend/click vì iOS chỉ mở khóa ở đó; (3) trạng thái 'interrupted' sau khi chuyển app cũng phải resume. */
+  kick(){const c=this.ctx;if(!c)return;
+    if(c.state!=='running'){try{const r=c.resume();if(r&&r.catch)r.catch(()=>{})}catch(e){}}
+    try{const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0)}catch(e){}
+    if(!this.tag){try{const a=new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAABErAAABAAgAZGF0YQAAAAA=');a.loop=true;a.setAttribute('playsinline','');a.volume=0.01;this.tag=a}catch(e){}}
+    if(this.tag&&this.tag.paused){try{const r=this.tag.play();if(r&&r.catch)r.catch(()=>{})}catch(e){}}},
   unlock(){
-    if(this.ctx){if(this.ctx.state==='suspended')this.ctx.resume();return}
+    try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback'}catch(e){}
+    if(this.ctx){this.kick();return}
     try{
       const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
       this.ctx=new C();this.master=this.ctx.createGain();this.master.gain.value=0.8;this.master.connect(this.ctx.destination);
@@ -69,7 +77,7 @@ const Audio_={
       this.musG=this.ctx.createGain();this.musG.gain.value=0.16;this.musG.connect(this.master);
       const b=this.ctx.createBuffer(1,this.ctx.sampleRate*0.5,this.ctx.sampleRate),d=b.getChannelData(0);
       for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;this.noiseBuf=b;
-      this.on=true;this.applySettings();
+      this.on=true;this.applySettings();this.kick();
       this.startMusic();
     }catch(e){}
   },
