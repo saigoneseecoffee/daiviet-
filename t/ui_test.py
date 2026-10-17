@@ -139,7 +139,7 @@ with sync_playwright() as p:
         v=ev(f"G.save.set.{k}"); tap(f'[data-set="{k}"]'); ok(f'bật/tắt {k}', ev(f"G.save.set.{k}")!=v); tap(f'[data-set="{k}"]')
     tap('#shClose')
     # thú cưỡi
-    ev("G.save.gold=99999;G.save.lvl=30;UI.open('mount')");pg.wait_for_timeout(300);shot('mount')
+    ev("G.save.gold=99999;G.save.lvl=30;if(window.BT&&BT.st)BT.st().offer=1;UI.open('mount')");pg.wait_for_timeout(300);shot('mount')
     tap('[data-buy="nau"]');ok('mua Ngựa Nâu và cưỡi',ev("!!G.save.mounts.nau&&G.save.riding==='nau'"))
     sp0=ev("G.p.spd");tap('[data-down]');ok('xuống ngựa',ev("!G.save.riding"));ok('cưỡi tăng tốc chạy',ev("G.p.spd")<sp0)
     tap('[data-buy="voi"]');ok('mua Voi Chiến',ev("G.save.riding==='voi'"))

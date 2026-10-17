@@ -54,6 +54,7 @@ function render(dt){
   for(const e of G.enemies)if(!e.dead&&e.x>left-100&&e.x<left+vw+100&&e.y>top-60&&e.y<top+vh+160)list.push({y:e.y,e});
   for(const d of G.drops)list.push({y:d.y,d});
   if(p&&(G.state!=='dead'))list.push({y:p.y,p:1});
+  HK.ev('ysort',list); // mô-đun thêm {y,fn} để vẽ xen theo chiều sâu (gia tướng...)
   list.sort((a,b)=>a.y-b.y);
   for(const it of list){
     if(it.o){const o=it.o,sp=getSprite(o.k,o.v,W.M.pal,S*o.s);
@@ -64,6 +65,7 @@ function render(dt){
     else if(it.e)drawEnemy(it.e);
     else if(it.d)drawDrop(it.d);
     else if(it.p)drawPlayer();
+    else if(it.fn)it.fn();
   }
   drawTownLights(left,top,vw,vh);HK.ev('drawWorld',left,top,vw,vh);
   // đạn

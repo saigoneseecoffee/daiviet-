@@ -63,7 +63,7 @@ with sync_playwright() as p:
       for(let i=0;i<3;i++){const e=spawnEnemy('soi',G.p.x+40,G.p.y,5,true);hurtEnemy(e,1e9,{})}
       dropChest(G.p.x,G.p.y,0.7,'Phá ổ quái');dropChest(G.p.x,G.p.y,0.7,'Phá ổ quái');dropChest(G.p.x,G.p.y,1,'Đẩy lùi quái triều');
       openChest({x:G.p.x,y:G.p.y,val:{bonus:1}});openChest({x:G.p.x,y:G.p.y,val:{bonus:1}});
-      G.combo=60;bump=DAILY.bump;bump('combo',60,1);
+      G.combo=60;bump=DAILY.bump;bump('combo',60,1);for(const k of ['nvquiz','nvfish','nvesc'])bump(k,5,1);
       const st=MAPS[S.map].quest[S.qs[S.map]];if(st&&st.t!=='boss')completeStep();})()""")
     st = ev("DAILY.state().q.map(q=>q.k+':'+q.p+'/'+q.n)"); ok('mọi nhiệm vụ ngày hoàn thành', ev("DAILY.state().q.every(q=>q.p>=q.n)"), str(st))
     tap('#bDaily'); shot('day_done')

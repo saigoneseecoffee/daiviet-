@@ -155,7 +155,7 @@ function drawHuman(g,o){
       const sag=1.2+Math.abs(Math.cos(fa))*4.6;
       g.moveTo(le[0],le[1]);g.quadraticCurveTo(lerp(le[0],lw[0],0.6),lerp(le[1],lw[1],0.6)+sag+sway*0.15,lw[0]-Math.cos(fa)*0.6+sway*0.2,lw[1]+sag*0.55);g.lineTo(lw[0],lw[1]);g.closePath()}
     else{tseg(g,S[0],S[1],3.1,E[0],E[1],2.45,0.7,0.5);tseg(g,E[0],E[1],2.45,W[0],W[1],2.0,0.9,0.2)}
-    solid(g,c,ol);
+    solid(g,c,ol);if(L.armX)L.armX(g,S,E,dark);
     // cổ tay áo / bao tay
     if(robeT){g.strokeStyle=dark?shade(L.robe2,-0.2):L.robe2;g.lineWidth=1.5;const n=[-Math.sin(fa),Math.cos(fa)];g.beginPath();g.moveTo(W[0]+n[0]*3.5,W[1]+n[1]*3.5);g.lineTo(W[0]-n[0]*3.5,W[1]-n[1]*3.5);g.stroke()}
     else{const bc=L.armor==='lamellar'?(L.plate||'#c9a24e'):'#4a3020',B0=[lerp(E[0],H[0],0.42),lerp(E[1],H[1],0.42)];g.beginPath();tseg(g,B0[0],B0[1],2.6,W[0],W[1],2.3,0.4,0.2);solid(g,dark?shade(bc,-0.25):bc,olc(bc),1.8)}
@@ -184,7 +184,7 @@ function drawHuman(g,o){
     g.quadraticCurveTo(7.7+br,-9.6,7.1+tx,SY+2.2);g.quadraticCurveTo(6.6+tx,NY+0.2,2.8+tx*0.5,NY-0.2);g.closePath()};
   torso();solid(g,shade(robeC,0.03),olc(robeC));
   g.fillStyle='rgba(30,12,0,0.2)';g.beginPath();g.moveTo(-2.2+tx*0.3,NY+0.2);g.quadraticCurveTo(-6.2-tx*0.4,NY+0.4,-6.6-tx*0.5,SY+2.2);g.quadraticCurveTo(-7.2,-9.5,-5.4,-4.6);g.lineTo(-5.9,0.4);g.lineTo(-2.4,0.4);g.quadraticCurveTo(-3.4,-9,-2.2+tx*0.3,NY+0.2);g.fill();
-  const clipT=L.armor==='lamellar'||L.ov;g.save();if(clipT){torso();g.clip()}
+  const clipT=L.armor==='lamellar'||L.ov||L.deco;g.save();if(clipT){torso();g.clip()}
   // nếp vải dọc thân
   g.strokeStyle='rgba(0,0,0,0.13)';g.lineWidth=0.9;g.beginPath();g.moveTo(1,-11);g.quadraticCurveTo(-0.5,-7,0.6,-3);g.moveTo(-3,-12.5);g.quadraticCurveTo(-3.8,-8,-3.2,-4);g.stroke();
   g.strokeStyle='rgba(255,250,235,0.22)';g.lineWidth=1.1;g.beginPath();g.moveTo(6.6+tx,SY+3);g.quadraticCurveTo(7.4+br,-9.6,5.4,-5);g.stroke();
@@ -198,6 +198,7 @@ function drawHuman(g,o){
     case'mage':g.fillStyle=L.robe2;for(let i=0;i<3;i++){g.beginPath();g.arc(4.2,-12+i*3.4,0.75,0,TAU);g.fill()}break;
     case'apron':g.fillStyle='#3a2a1c';g.beginPath();g.moveTo(-4,-12);g.lineTo(6.5,-12);g.lineTo(7.5,1);g.lineTo(-4,1);g.closePath();g.fill();break;
   }
+  if(L.deco)L.deco(g,SY,NY,tx,t);// hoa văn áo (outfit.js)
   if(L.ov&&L.armor!=='lamellar'){const pc=L.ov;g.fillStyle=_lgH(g,-6,0,7,0,pc);g.beginPath();g.moveTo(-7,SY+2.2);g.quadraticCurveTo(1,SY+0.6,8,SY+2.2);g.lineTo(8,-6);g.lineTo(-7,-6);g.closePath();g.fill();
     g.strokeStyle=shade(pc,-0.45);g.lineWidth=0.7;g.beginPath();for(let r=0;r<3;r++){const y=SY+5+r*3;g.moveTo(-7,y);g.lineTo(8,y);for(let c=-5;c<=7;c+=3){g.moveTo(c+(r%2)*1.5,y-3);g.lineTo(c+(r%2)*1.5,y)}}g.stroke();
     if(L.ovDisc){g.fillStyle=L.ovDisc;g.beginPath();g.arc(2,SY+6.5,2.2,0,TAU);g.fill()}}
@@ -208,10 +209,11 @@ function drawHuman(g,o){
   g.restore();// hết clip
   /* vạt áo trước (sau chân trước, che đùi) */
   {const r=panel(fr,1);solid(g,shade(robeC,-0.05),olc(robeC));
-    g.save();if(L.armor==='lamellar')g.clip();
+    g.save();if(L.armor==='lamellar'||L.deco2)g.clip();
     if(L.armor==='lamellar'){g.strokeStyle='rgba(0,0,0,0.3)';g.lineWidth=0.7;g.beginPath();for(let y=-1;y<r[2];y+=3.2){g.moveTo(-14,y);g.lineTo(18,y)}g.stroke();g.fillStyle=L.plate||'#d9b25a';g.fillRect(-14,r[2]-1.4,32,1.4)}
     else{g.strokeStyle='rgba(0,0,0,0.15)';g.lineWidth=0.9;g.beginPath();g.moveTo(1.8,-3);g.quadraticCurveTo(r[0]+3,r[2]*0.5,r[0]+2.6,r[2]);g.stroke();
       g.strokeStyle=L.robe2;g.lineWidth=1.8;g.beginPath();g.moveTo(r[0]+0.6,r[2]-0.4);g.lineTo(r[1]-0.6,r[2]-0.9);g.stroke()}
+    if(L.deco2)L.deco2(g,r,t);// hoa văn vạt áo (outfit.js)
     g.restore()}
   // đai lưng
   g.beginPath();g.moveTo(-6.2,-6.4);g.quadraticCurveTo(0,-7.2,6.4,-6.6);g.lineTo(6.5,-2.8);g.quadraticCurveTo(0,-2.2,-6.3,-2.6);g.closePath();solid(g,L.sash,olc(L.sash),2);

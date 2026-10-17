@@ -47,6 +47,8 @@ def open_page(p, ctxopts, clear=True, init=None):
     errs = []
     pg.on('console', lambda m: errs.append(('console.' + m.type, m.text)) if m.type in ('error', 'warning') else None)
     pg.on('pageerror', lambda e: errs.append(('pageerror', str(e))))
+    if os.environ.get('DVHK_DAO')!='1':
+        pg.add_init_script('window.__DVHK_NODAO=1')  # bỏ hộp chọn Chính/Tà tự bật khi bài thử đặt cấp cao
     if init:
         pg.add_init_script(init)
     pg.goto('file://' + HTML)

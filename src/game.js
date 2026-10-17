@@ -270,13 +270,13 @@ function basicAttack(){
   const dmg=p.atk;
   if(A.type==='shot'){
     const sx=p.x+Math.cos(p.aim)*14,sy=p.y-24+Math.sin(p.aim)*8;
-    G.projs.push({x:sx,y:sy,vx:Math.cos(p.aim)*A.speed,vy:Math.sin(p.aim)*A.speed,r:8,dmg,from:'p',pierce:0,life:0.75,kind:A.proj,hit:new Set(),home:A.proj==='orb'?t:null});
+    G.projs.push({x:sx,y:sy,vx:Math.cos(p.aim)*A.speed,vy:Math.sin(p.aim)*A.speed,r:8,dmg,from:'p',pierce:0,life:0.75,kind:A.proj,hit:new Set(),home:A.proj==='orb'?t:null,basic:G.swing=(G.swing||0)+1});
     Audio_.play(A.proj==='orb'?'magic':'bow');
   }else{
-    const range=A.range,arc=A.arc;let hit=0;
+    const range=A.range,arc=A.arc;let hit=0;const sw=G.swing=(G.swing||0)+1;
     for(const e of G.enemies){if(e.dead)continue;const d=dist(p.x,p.y,e.x,e.y);if(d>range+e.r)continue;
       const a=Math.atan2(e.y-p.y,e.x-p.x);if(Math.abs(angDiff(p.aim,a))>arc/2+0.25&&d>e.r+10)continue;
-      hurtEnemy(e,dmg,{kb:C.id==='con'?160:90,ang:a});hit++}
+      hurtEnemy(e,dmg,{kb:C.id==='con'?160:90,ang:a,basic:sw});hit++}
     G.fx.push({k:'slash',x:p.x,y:p.y-18,a:p.aim,arc:A.type==='thrust'?0.5:arc,r:range,life:0.18,max:0.18,col:C.color,thrust:A.type==='thrust',flip:(p.combo=(p.combo||0)+1)%2});
     Audio_.play('swing');
   }
@@ -387,7 +387,7 @@ function update(dt){
   // đánh
   if(G.input.atk||(S.set.auto&&G.autoAtk))basicAttack();else p.approach=null;
   // NPC gần
-  let nn=null;for(const n of W.npcs){if(dist(p.x,p.y,n.x,n.y)<80){nn=n;break}}if(nn!==G.nearNpc){G.nearNpc=nn;UI.npcPrompt(nn)}
+  let nn=null,nd=80;for(const n of W.npcs){const d=dist(p.x,p.y,n.x,n.y);if(d<nd){nd=d;nn=n}}if(nn!==G.nearNpc){G.nearNpc=nn;UI.npcPrompt(nn)}
   HK.ev('tick',dt);updateEnemies(dt);updateProjs(dt);updateZones(dt);updateDrops(dt);updateFx(dt);
   // sinh quái
   G.spawnT-=dt;if(G.spawnT<=0){G.spawnT=0.7;let near=0;for(const e of G.enemies)if(!e.boss&&dist2(e.x,e.y,p.x,p.y)<1000*1000)near++;
@@ -534,7 +534,7 @@ function updateProjs(dt){
       if(k>=1){if(dist(b.tx,b.ty,p.x,p.y)<b.r+p.r*0.5)hurtPlayer(b.dmg,b.lv,null);boomFx(b.tx,b.ty,b.r);G.projs.splice(i,1)}continue}
     if(b.home&&!b.home.dead){const a=Math.atan2(b.home.y-18-b.y,b.home.x-b.x),sp=Math.hypot(b.vx,b.vy);const cur=Math.atan2(b.vy,b.vx);const na=cur+clamp(angDiff(cur,a),-8*dt,8*dt);b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}
     b.x+=b.vx*dt;b.y+=b.vy*dt;
-    if(b.from==='p'){for(const e of G.enemies){if(e.dead||b.hit.has(e))continue;if(dist(b.x,b.y,e.x,e.y-14*e.sc)<b.r+e.r){b.hit.add(e);hurtEnemy(e,b.dmg,{kb:b.kind==='wave'?120:50,ang:Math.atan2(b.vy,b.vx)});
+    if(b.from==='p'){for(const e of G.enemies){if(e.dead||b.hit.has(e))continue;if(dist(b.x,b.y,e.x,e.y-14*e.sc)<b.r+e.r){b.hit.add(e);hurtEnemy(e,b.dmg,{kb:b.kind==='wave'?120:50,ang:Math.atan2(b.vy,b.vx),basic:b.basic,proc:b.proc});
         if(b.kind==='orb'){G.fx.push({k:'ring',x:b.x,y:b.y,r:5,r2:40,life:0.25,max:0.25,col:'#9fc4ff'});}
         if(b.pierce--<=0){b.life=0;break}}}}
     else if(p.hp>0&&dist(b.x,b.y,p.x,p.y-18)<b.r+p.r){hurtPlayer(b.dmg,b.lv,null);b.life=0}

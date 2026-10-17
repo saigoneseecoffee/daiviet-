@@ -170,9 +170,10 @@ const _uh=updateHorde;updateHorde=function(){const g0=gainExp;gainExp=function(x
 const _oc=openChest;openChest=function(){const r=_oc.apply(this,arguments);if(G.save.prog)cqGain(Math.round(3*cqMul()),'chest');return r};
 
 /* ---------- Cảnh Giới: đột phá ---------- */
-function canBreak(){const S=G.save,p=ps();if(!p||p.realm>=REALMS.length-1)return false;const R=REALMS[p.realm+1];return S.lvl>=R.lv&&(S.cq||0)>=R.cq}
+function canBreak(){const S=G.save,p=ps();if(!p||p.realm>=REALMS.length-1)return false;const R=REALMS[p.realm+1];return S.lvl>=R.lv&&(S.cq||0)>=R.cq&&HK.mod('canBreak',true,p.realm+1)!==false}
 function breakthrough(){const S=G.save,p=ps();if(!p||p.realm>=REALMS.length-1)return'Đã đạt Cảnh Giới cao nhất';const R=REALMS[p.realm+1];
   if(S.lvl<R.lv)return`Cần đạt cấp ${R.lv}`;if((S.cq||0)<R.cq)return`Thiếu Chân Khí (cần ${fmtFull(R.cq)})`;
+  const gate=HK.mod('breakGate','',p.realm+1);if(gate)return gate; // luyendan.js: đan dược và tỉ lệ thành công
   S.cq-=R.cq;p.realm++;const pl=G.p;const hpR=pl.hp/pl.maxhp;recalc();pl.hp=pl.maxhp;pl.mp=pl.maxmp;
   S.score+=2000*p.realm*p.realm;saveGame();HK.ev('realm',p.realm);
   breakFx(p.realm);return''}
@@ -356,7 +357,7 @@ function realmHtml(){const S=G.save,p=ps(),R=REALMS[p.realm],nx=REALMS[p.realm+1
     h+=`<div class="rgNext" style="--rc:${nx.c}"><h5>Đột phá: <em>${esc(nx.n)}</em></h5>
       <div class="rgBar lv"><i style="transform:scaleX(${Math.min(1,S.lvl/nx.lv)})"></i><b>Cấp ${S.lvl} / ${nx.lv}${lvOk?' ✓':''}</b></div>
       <div class="rgBar"><i style="transform:scaleX(${Math.min(1,(S.cq||0)/nx.cq)})"></i><b>Chân Khí ${fmtFull(S.cq||0)} / ${fmtFull(nx.cq)}${cqOk?' ✓':''}</b></div>
-      <div class="rgGain">${gain.map(x=>`<span>${esc(x)}</span>`).join('')}</div>
+      ${HK.mod('realmExtra','',p.realm+1)}<div class="rgGain">${gain.map(x=>`<span>${esc(x)}</span>`).join('')}</div>
       <button class="btn gold rgGo" id="rgGo" ${lvOk&&cqOk?'':'disabled'}>${lvOk&&cqOk?'Đột phá '+esc(nx.n):!lvOk?'Cần cấp '+nx.lv:'Cần thêm '+fmtFull(nx.cq-(S.cq||0))+' Chân Khí'}</button></div>`}
   else h+=`<div class="rgNext"><h5>Đã đạt cảnh giới cao nhất. Tiếp tục khai Kinh Mạch và Luân Hồi.</h5></div>`;
   h+=`<div class="sec"><h4>CON ĐƯỜNG VÕ ĐẠO</h4><div class="rgList">${REALMS.slice(1).map((r,j)=>{const i=j+1,st=i<=p.realm?(i===p.realm?'cur':'done'):'';
@@ -365,7 +366,7 @@ function realmHtml(){const S=G.save,p=ps(),R=REALMS[p.realm],nx=REALMS[p.realm+1
   h+=`<div class="sec"><h4>LUÂN HỒI${p.lh?' · '+esc(lhTitle(p.lh).toUpperCase()):''}</h4><p class="hist">Hạ boss chương cuối để Luân Hồi: quái mạnh hơn ${LH_STEP} cấp mỗi vòng, vô hạn vòng. Lần tới (${esc(lhTitle(n))}): vĩnh viễn ×${(1+lhGain(n)/100).toFixed(2).replace('.',',')} công và sinh lực, ${fmtFull(rw.cq)} Chân Khí, ${rw.tq} Tàn Quyển, ${fmt(rw.gold)} vàng. Giữ cấp, trang bị, Cảnh Giới, Kinh Mạch.${p.mig?` Đã ghi nhận ${p.mig} lần Luân Hồi từ bản cũ.`:''}</p></div>
     <div class="sec"><h4>NGUỒN CHÂN KHÍ</h4><p class="hist" style="color:var(--dim)">Quái thường thỉnh thoảng rơi, quái tinh anh, nhiệm vụ, rương báu và boss đều cho Chân Khí. Vượt Tháp, nhiệm vụ hằng ngày và Bế quan cho nhiều nhất. Tàn Quyển rơi từ boss và tinh anh, dùng nâng kỹ năng trên cấp 10.</p></div>`;
   return h}
-function bindRealm(body){const c=body.querySelector('#rgSeal');if(c)drawSeal(c,realmIdx());const b=body.querySelector('#rgGo');if(b)b.onclick=()=>{const e=breakthrough();if(e)UI.toast(e,'warn')}}
+function bindRealm(body){const c=body.querySelector('#rgSeal');if(c)drawSeal(c,realmIdx());const b=body.querySelector('#rgGo');if(b)b.onclick=()=>{if(HK.mod('realmGo',false,realmIdx()+1))return;const e=breakthrough();if(e)UI.toast(e,'warn')}}
 
 /* ---- thẻ Kinh Mạch ---- */
 function merHtml(){const S=G.save,p=ps();if(P.sel==null)P.sel=0;const i=P.sel,m=MER[i],k=p.mer[i],nx=merNext(i),u=merUnits(i);
@@ -406,7 +407,7 @@ const _hud=UI.hud;UI.hud=function(){const r=_hud.apply(this,arguments);const S=G
   return r};
 
 /* ---------- hào quang Cảnh Giới dưới chân và danh hiệu trên đầu ---------- */
-const _da=drawAura;drawAura=function(pl){const p=ps();if(p&&p.realm>0&&G.state!=='title')realmAura(pl,p.realm,p.lh);return _da.apply(this,arguments)};
+const _da=drawAura;drawAura=function(pl){const p=ps();if(p&&p.realm>0&&G.state!=='title'&&!(window.OF&&OF.aura))realmAura(pl,p.realm,p.lh);return _da.apply(this,arguments)};
 function realmAura(pl,ri,lh){const col=REALMS[ri].c,t=G.t,tier=ri>=9?3:ri>=6?2:ri>=3?1:0;
   cx.save();cx.translate(pl.x,pl.y);
   additive(()=>{cx.save();cx.scale(1,0.38);const R=36+tier*6;cx.globalAlpha=0.45;cx.strokeStyle=col;cx.lineWidth=1.6;cx.beginPath();cx.arc(0,0,R,0,TAU);cx.stroke();

@@ -12,16 +12,23 @@ Game nhập vai hành động lấy bối cảnh lịch sử Việt Nam, chạy 
 - **Bí kíp khi lên cấp:** chọn 1 trong 3, có 7 Tuyệt kỹ ghép đôi.
 - **Đồ Huyền Thoại:** 14 món. Ép đồ có rủi ro vỡ kiểu MU.
 - **Ngũ Hành tương khắc. Thành chính:** tường bao, hồ sen, 8 nhà có chức năng.
+- **Võ Đạo (phím Y):** bảng gom các hệ phát triển nhân vật:
+  - **Y Phục:** 16 bộ (Lông Chim Lạc, Giáp Sát Thát, Áo Đỏ Tây Sơn, Hoàng Bào…) hiện thật trên người. Hào quang và bảng danh hiệu đổi theo Cảnh Giới; đại chiêu có vòng ấn trống đồng hoặc Bát Quái.
+  - **Bí Tịch Võ Công:** 27 sách Ngũ Hành, dùng được cho mọi phái, thêm 2 ô chiêu (phím U, O) và 2 ô Tâm Pháp. Chọn Chính Đạo hoặc Tà Đạo, mỗi đạo có bí tịch đối ứng. Mua ở Thủ Thư.
+  - **Thần Binh:** vũ khí Hiếm trở lên mang 1 trong 11 Thần Tính đổi lối đánh (kiếm bay hộ thân, sét, hút máu, đóng băng…). Rèn lại ở Lò Rèn.
+  - **Luyện Đan:** hái cây thuốc Nam ngoài bản đồ, trồng Vườn Thuốc (lớn cả khi tắt máy), luyện ở Đan Lô. Đột phá Cảnh Giới cần đan và có thể thất bại.
+  - **Gia Tướng:** 8 bạn đồng hành (Chiến Tượng, Hổ Xám, Nỏ Thủ Âu Lạc, Nữ Tướng Tây Sơn, Kim Quy…), nâng 5 sao, có điểm Thân Mật.
+  - **Kỳ Ngộ:** Đố Sử Việt (117 câu, Bia Đá mỗi chương), Câu Cá ở hồ sen, Áp Tiêu, Rương Bí Ẩn mở bằng chìa.
 
 ## Điều khiển
 - **Điện thoại:** kéo ở nửa trái màn hình để di chuyển, nút đỏ để đánh, ba nút kỹ năng bên cạnh.
-- **Bàn phím:** WASD di chuyển, J đánh, K / L / I kỹ năng, E nói chuyện với NPC, B túi đồ, R lò rèn, C chợ, T kỹ năng, Q nhiệm vụ, M bản đồ, V thú cưỡi, Esc cài đặt.
+- **Bàn phím:** WASD di chuyển, J đánh, K / L / I kỹ năng, U / O bí tịch, Y Võ Đạo, E nói chuyện với NPC, B túi đồ, R lò rèn, C chợ, T kỹ năng, Q nhiệm vụ, M bản đồ, V thú cưỡi, Esc cài đặt.
 
 ## Cấu trúc
 | Đường dẫn | Nội dung |
 |---|---|
 | `index.html` | Bản game đã ghép, một file duy nhất |
-| `src/` | Mã nguồn chia theo phần: dữ liệu, thế giới, nhân vật, thành chính, vật phẩm, quái, vòng lặp game, hiệu ứng, giao diện. Mô-đun mở rộng `perks.js`, `legend.js`, `boss2.js`, `prog.js`, `chapters.js`, `tower.js`, `daily.js` cắm vào qua điểm nối `HK` trong `core.js` |
+| `src/` | Mã nguồn chia theo phần: dữ liệu, thế giới, nhân vật, thành chính, vật phẩm, quái, vòng lặp game, hiệu ứng, giao diện. Mô-đun mở rộng `perks.js`, `legend.js`, `boss2.js`, `prog.js`, `chapters.js`, `tower.js`, `daily.js`, `hub.js`, `outfit.js`, `bikip.js`, `thanbinh.js`, `luyendan.js`, `giatuong.js`, `nhiemvu.js` cắm vào qua điểm nối `HK` trong `core.js` |
 | `build.sh` | Ghép `src/` thành `dist/dai-viet-hiep-khach.html` |
 | `styles/` | Trang so sánh 10 phong cách vẽ (`dist/phong-cach-ve.html`) |
 | `t/` | Kiểm thử Playwright: giao diện, bàn phím, bot tự chơi, đo hiệu năng |

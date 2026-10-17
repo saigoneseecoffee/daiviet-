@@ -8,3 +8,5 @@ dist/styles_test.html
 t/logs_*/
 t/*.log
 dist/agent_*.html
+AGENT_BRIEF.md
+t/logs_*
