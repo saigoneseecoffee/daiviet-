@@ -7814,6 +7814,8 @@ window.DAILY={
 };
 })();
 
+/* số phiên bản hiện ở màn hình tiêu đề để biết trình duyệt đã tải bản mới chưa */
+const GAME_VER='17.10.26b';
 /* ============ KHỞI ĐỘNG, NHẬP LIỆU, VÒNG LẶP ============ */
 if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath();return this}}
 const keys={};
@@ -7854,7 +7856,7 @@ function showTitle(){
   const b=$('#tBtns');
   if(sv){const C=CLASS_BY_ID[sv.cls];b.innerHTML=`<button class="btn" id="tCont">Chơi tiếp<small>${esc(sv.name)} · ${esc(C.name)} cấp ${sv.lvl} · ${esc(MAPS[sv.map].name)}</small></button><button class="btn sec" id="tNew">Hành trình mới</button>`}
   else b.innerHTML=`<button class="btn" id="tNew">Bắt đầu hành trình</button>`;
-  $('#tFoot').textContent=(sv?`Kỷ lục ${fmtFull(Math.max(sv.best,sv.score))} điểm. `:'')+(FINE?'Chơi bằng bàn phím: WASD, J, K, L, I.':'Chơi bằng cảm ứng. Xoay ngang hoặc dọc đều được.');
+  $('#tFoot').textContent=(sv?`Kỷ lục ${fmtFull(Math.max(sv.best,sv.score))} điểm. `:'')+(FINE?'Chơi bằng bàn phím: WASD, J, K, L, I.':'Chơi bằng cảm ứng. Xoay ngang hoặc dọc đều được.')+' · Bản '+GAME_VER;
   $('#title').hidden=false;
   const tc=$('#tCont');if(tc)tc.onclick=()=>{Audio_.unlock();G.save=loadSave();startGame()};
   $('#tNew').onclick=()=>{Audio_.unlock();if(sv)UI.confirm('Bắt đầu hành trình mới sẽ xóa nhân vật hiện tại. Tiếp tục?',showSelect);else showSelect()};
